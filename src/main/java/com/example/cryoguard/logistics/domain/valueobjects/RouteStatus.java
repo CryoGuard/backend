@@ -5,7 +5,9 @@ import com.fasterxml.jackson.annotation.JsonValue;
 public enum RouteStatus {
     active("active"),
     completed("completed"),
-    cancelled("cancelled");
+    cancelled("cancelled"),
+    INITIATED("iniciado"),
+    IN_PROGRESS("en_ruta");
 
     private final String value;
 

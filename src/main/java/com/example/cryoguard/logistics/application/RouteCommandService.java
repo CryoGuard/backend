@@ -5,11 +5,13 @@ import com.example.cryoguard.logistics.domain.commands.CompleteRouteCommand;
 import com.example.cryoguard.logistics.domain.commands.CreateRouteCommand;
 import com.example.cryoguard.logistics.domain.commands.RecordRouteLocationCommand;
 import com.example.cryoguard.logistics.domain.commands.UpdateRouteCommand;
+import com.example.cryoguard.logistics.domain.entities.RouteContainerAssignment;
 import com.example.cryoguard.logistics.domain.entities.RouteLocationHistory;
 import com.example.cryoguard.logistics.domain.valueobjects.GeofenceStatus;
 import com.example.cryoguard.logistics.domain.valueobjects.GeofenceType;
 import com.example.cryoguard.logistics.domain.valueobjects.RouteStatus;
 import com.example.cryoguard.logistics.infrastructure.persistence.GeofenceRepository;
+import com.example.cryoguard.logistics.infrastructure.persistence.RouteContainerAssignmentRepository;
 import com.example.cryoguard.logistics.infrastructure.persistence.RouteLocationHistoryRepository;
 import com.example.cryoguard.logistics.infrastructure.persistence.RouteRepository;
 import org.springframework.stereotype.Service;
@@ -17,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Service
@@ -26,12 +29,15 @@ public class RouteCommandService {
     private final RouteRepository routeRepository;
     private final GeofenceRepository geofenceRepository;
     private final RouteLocationHistoryRepository locationHistoryRepository;
+    private final RouteContainerAssignmentRepository containerAssignmentRepository;
 
     public RouteCommandService(RouteRepository routeRepository, GeofenceRepository geofenceRepository,
-                               RouteLocationHistoryRepository locationHistoryRepository) {
+                               RouteLocationHistoryRepository locationHistoryRepository,
+                               RouteContainerAssignmentRepository containerAssignmentRepository) {
         this.routeRepository = routeRepository;
         this.geofenceRepository = geofenceRepository;
         this.locationHistoryRepository = locationHistoryRepository;
+        this.containerAssignmentRepository = containerAssignmentRepository;
     }
 
     public Route createRoute(CreateRouteCommand command) {
@@ -39,17 +45,28 @@ public class RouteCommandService {
         Route route = new Route(
             routeId,
             command.name(),
-            command.containerId(),
-            RouteStatus.active,
+            RouteStatus.INITIATED,
             command.origin(),
             command.destination(),
             command.distanceKm(),
             command.estimatedDurationMinutes(),
             command.checkpoints(),
             command.startTime(),
-            command.estimatedArrival()
+            command.estimatedArrival(),
+            command.authorizedOperatorId()
         );
-        return routeRepository.save(route);
+
+        Route savedRoute = routeRepository.save(route);
+
+        // Create container assignments if provided
+        if (command.containerIds() != null && !command.containerIds().isEmpty()) {
+            for (Long containerId : command.containerIds()) {
+                RouteContainerAssignment assignment = new RouteContainerAssignment(savedRoute, containerId);
+                containerAssignmentRepository.save(assignment);
+            }
+        }
+
+        return savedRoute;
     }
 
     public Route updateRoute(Long id, UpdateRouteCommand command) {
@@ -69,8 +86,8 @@ public class RouteCommandService {
     public Route completeRoute(Long id, CompleteRouteCommand command) {
         Route route = routeRepository.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("Route not found: " + id));
-        if (route.getStatus() != RouteStatus.active) {
-            throw new IllegalStateException("Only active routes can be completed");
+        if (route.getStatus() != RouteStatus.INITIATED && route.getStatus() != RouteStatus.IN_PROGRESS && route.getStatus() != RouteStatus.active) {
+            throw new IllegalStateException("Only active or in-progress routes can be completed");
         }
         route.complete();
         return routeRepository.save(route);
