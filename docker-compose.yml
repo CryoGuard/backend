@@ -1,28 +1,29 @@
+version: '3.8'
+
 services:
-  cryoguard-app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: cryoguard-backend
+  backend:
+    build: .
     ports:
       - "8080:8080"
     environment:
-      # Perfil dev con H2 en memoria (no requiere base de datos externa)
-      - SPRING_PROFILES_ACTIVE=dev
-      - SPRING_DATASOURCE_URL=jdbc:h2:mem:cryoguard;DB_CLOSE_DELAY=-1
-      - SPRING_DATASOURCE_DRIVER-CLASSNAME=org.h2.Driver
-      - SPRING_DATASOURCE_USERNAME=sa
-      - SPRING_DATASOURCE_PASSWORD=
-      - SPRING_JPA_HIBERNATE_DDL_AUTO=create-drop
-      - SPRING_JPA_SHOW_SQL=true
-      - SPRING_H2_CONSOLE_ENABLED=true
-      # JWT Configuration
-      - AUTHORIZATION_JWT_SECRET=cryoguard-256-bit-secret-key-for-jwt-token-signing-must-be-long-enough
-      - AUTHORIZATION_JWT_EXPIRATION_DAYS=7
-    restart: unless-stopped
-    networks:
-      - cryoguard-network
+      SPRING_PROFILES_ACTIVE: dev
+      SERVER_PORT: 8080
+      SPRING_DATASOURCE_URL: jdbc:h2:file:/opt/h2-data/cryoguard
+      SPRING_DATASOURCE_DRIVERCLASSNAME: org.h2.Driver
+      SPRING_DATASOURCE_USERNAME: sa
+      SPRING_DATASOURCE_PASSWORD: ""
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_H2_CONSOLE_ENABLED: "true"
+      SPRING_H2_CONSOLE_PATH: /h2-console
+    volumes:
+      - h2-data:/opt/h2-data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
 
-networks:
-  cryoguard-network:
-    driver: bridge
+volumes:
+  h2-data:
+    driver: local

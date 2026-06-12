@@ -1,28 +1,32 @@
-FROM maven:3.9.4-eclipse-temurin-21 AS builder
+# Multi-stage build for CryoGuard Backend
+# Stage 1: Build with Maven
+FROM maven:3.9-eclipse-temurin-21 AS build
 WORKDIR /app
 
-# Copiamos todo el proyecto (incluye mvnw y .mvn si existen)
-COPY . .
+# Copy dependency files first for better caching
+COPY pom.xml .
+RUN mvn dependency:go-offline -B
 
-RUN mvn -B -DskipTests package
+# Copy source code and build
+COPY src ./src
+RUN mvn package -DskipTests -B
 
-# ---------- STAGE 2: dev (imagen para desarrollo con hot-reload) ----------
-FROM maven:3.9.4-eclipse-temurin-21 AS dev
+# Stage 2: Runtime with JRE
+FROM eclipse-temurin:21-jre
 WORKDIR /app
 
-# Copiamos mvnw y .mvn para poder usar el wrapper; copiar todo ayuda si no montas el volumen
-COPY . .
+# Create directory for H2 database files
+RUN mkdir -p /opt/h2-data
 
-RUN chmod +x mvnw
+# Copy the built JAR from build stage
+COPY --from=build /app/target/*.jar app.jar
 
+# Expose the default port
 EXPOSE 8080
 
-# Nota: al usar docker-compose montando el código en /app, los cambios en la fuente se reflejan.
-CMD ["sh", "-c", "if [ -x ./mvnw ] && [ -f ./.mvn/wrapper/maven-wrapper.properties ]; then ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev; else mvn -Dspring-boot.run.profiles=dev spring-boot:run; fi"]
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:8080/actuator/health || exit 1
 
-# ---------- STAGE 3: prod (imagen final para producción) ----------
-FROM eclipse-temurin:21-jre-jammy AS prod
-WORKDIR /app
-COPY --from=builder /app/target/*.jar app.jar
-EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Run the application
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]
