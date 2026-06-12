@@ -18,21 +18,27 @@ public record RouteResource(
     Integer progreso,
     Integer cajasAsignadas,
     Integer alertCount,
-    List<String> assignedBoxes
+    List<String> assignedBoxes,
+    String origin,
+    String destination,
+    String startTime,
+    String estimatedArrival
 ) {
     /**
      * Creates a RouteResource with no operator assigned.
      */
     public static RouteResource withoutOperator(Long id, String codigo, String estado,
                                                   Integer progreso, Integer cajasAsignadas,
-                                                  Integer alertCount, List<String> assignedBoxes) {
-        return new RouteResource(id, codigo, estado, null, progreso, cajasAsignadas, alertCount, assignedBoxes);
+                                                  Integer alertCount, List<String> assignedBoxes,
+                                                  String origin, String destination,
+                                                  String startTime, String estimatedArrival) {
+        return new RouteResource(id, codigo, estado, null, progreso, cajasAsignadas, alertCount, assignedBoxes, origin, destination, startTime, estimatedArrival);
     }
 
     /**
      * Creates a RouteResource with zero progress and no assigned boxes.
      */
-    public static RouteResource empty(Long id, String codigo, String estado) {
-        return new RouteResource(id, codigo, estado, null, 0, 0, 0, List.of());
+    public static RouteResource empty(Long id, String codigo, String estado, String origin, String destination) {
+        return new RouteResource(id, codigo, estado, null, 0, 0, 0, List.of(), origin, destination, null, null);
     }
 }

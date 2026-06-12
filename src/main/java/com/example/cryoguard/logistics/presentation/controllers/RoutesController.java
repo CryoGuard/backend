@@ -13,6 +13,7 @@ import com.example.cryoguard.logistics.domain.queries.GetRouteHistoryQuery;
 import com.example.cryoguard.logistics.domain.queries.GetRoutesByContainerQuery;
 import com.example.cryoguard.logistics.domain.valueobjects.RouteStatus;
 import com.example.cryoguard.logistics.presentation.assemblers.RouteAssembler;
+import com.example.cryoguard.logistics.presentation.assemblers.RouteAssemblerImpl;
 import com.example.cryoguard.logistics.presentation.resources.CreateRouteResource;
 import com.example.cryoguard.logistics.presentation.resources.RouteLocationResource;
 import com.example.cryoguard.logistics.presentation.resources.RouteResource;
@@ -33,10 +34,12 @@ public class RoutesController {
 
     private final RouteCommandService commandService;
     private final RouteQueryService queryService;
+    private final RouteAssemblerImpl routeAssembler;
 
-    public RoutesController(RouteCommandService commandService, RouteQueryService queryService) {
+    public RoutesController(RouteCommandService commandService, RouteQueryService queryService, RouteAssemblerImpl routeAssembler) {
         this.commandService = commandService;
         this.queryService = queryService;
+        this.routeAssembler = routeAssembler;
     }
 
     @GetMapping
@@ -46,11 +49,11 @@ public class RoutesController {
             @RequestParam(required = false) RouteStatus status) {
         List<RouteResource> routes;
         if (containerId != null) {
-            routes = RouteAssembler.toResourceList(queryService.getByContainer(new GetRoutesByContainerQuery(containerId)));
+            routes = routeAssembler.toResourceList(queryService.getByContainer(new GetRoutesByContainerQuery(containerId)));
         } else if (status != null) {
-            routes = RouteAssembler.toResourceList(queryService.getActiveRoutes(new GetActiveRoutesQuery()));
+            routes = routeAssembler.toResourceList(queryService.getActiveRoutes(new GetActiveRoutesQuery()));
         } else {
-            routes = RouteAssembler.toResourceList(queryService.getAllRoutes());
+            routes = routeAssembler.toResourceList(queryService.getAllRoutes());
         }
         return ResponseEntity.ok(routes);
     }
@@ -58,7 +61,7 @@ public class RoutesController {
     @GetMapping("/{id}")
     @Operation(summary = "Get route by ID", description = "Retrieves a specific route by its unique identifier.")
     public ResponseEntity<RouteResource> getRoute(@PathVariable Long id) {
-        RouteResource route = RouteAssembler.toResource(queryService.getById(new GetRouteByIdQuery(id)));
+        RouteResource route = routeAssembler.toResource(queryService.getById(new GetRouteByIdQuery(id)));
         return ResponseEntity.ok(route);
     }
 
@@ -66,7 +69,7 @@ public class RoutesController {
     @Operation(summary = "Create new route", description = "Creates a new logistics route for container transportation.")
     public ResponseEntity<RouteResource> createRoute(@Valid @RequestBody CreateRouteResource resource) {
         CreateRouteCommand command = RouteAssembler.toCreateCommand(resource);
-        RouteResource created = RouteAssembler.toResource(commandService.createRoute(command));
+        RouteResource created = routeAssembler.toResource(commandService.createRoute(command));
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
@@ -74,7 +77,7 @@ public class RoutesController {
     @Operation(summary = "Update route", description = "Updates an existing route with new details.")
     public ResponseEntity<RouteResource> updateRoute(@PathVariable Long id, @Valid @RequestBody UpdateRouteResource resource) {
         UpdateRouteCommand command = RouteAssembler.toUpdateCommand(resource);
-        RouteResource updated = RouteAssembler.toResource(commandService.updateRoute(id, command));
+        RouteResource updated = routeAssembler.toResource(commandService.updateRoute(id, command));
         return ResponseEntity.ok(updated);
     }
 
@@ -88,14 +91,14 @@ public class RoutesController {
     @PostMapping("/{id}/complete")
     @Operation(summary = "Complete route", description = "Marks a route as completed.")
     public ResponseEntity<RouteResource> completeRoute(@PathVariable Long id) {
-        RouteResource completed = RouteAssembler.toResource(commandService.completeRoute(id, new CompleteRouteCommand()));
+        RouteResource completed = routeAssembler.toResource(commandService.completeRoute(id, new CompleteRouteCommand()));
         return ResponseEntity.ok(completed);
     }
 
     @GetMapping("/{id}/history")
     @Operation(summary = "Get route location history", description = "Retrieves the location history for a specific route.")
     public ResponseEntity<List<RouteLocationResource>> getRouteHistory(@PathVariable Long id) {
-        List<RouteLocationResource> history = RouteAssembler.toLocationResourceList(queryService.getRouteHistory(new GetRouteHistoryQuery(id)));
+        List<RouteLocationResource> history = routeAssembler.toLocationResourceList(queryService.getRouteHistory(new GetRouteHistoryQuery(id)));
         return ResponseEntity.ok(history);
     }
 
@@ -110,6 +113,6 @@ public class RoutesController {
             resource.heading()
         );
         RouteLocationHistory recorded = commandService.recordLocation(id, command);
-        return ResponseEntity.status(HttpStatus.CREATED).body(RouteAssembler.toLocationResource(recorded));
+        return ResponseEntity.status(HttpStatus.CREATED).body(routeAssembler.toLocationResource(recorded));
     }
 }

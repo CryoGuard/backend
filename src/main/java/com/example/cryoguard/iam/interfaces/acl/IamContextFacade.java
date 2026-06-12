@@ -7,6 +7,7 @@ import com.example.cryoguard.iam.domain.model.queries.GetUserByUsernameQuery;
 import com.example.cryoguard.iam.domain.services.UserCommandService;
 import com.example.cryoguard.iam.domain.services.UserQueryService;
 import org.apache.logging.log4j.util.Strings;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +20,7 @@ import java.util.List;
  *     This class is a part of the ACL layer.
  * </p>
  */
+@Component
 public class IamContextFacade {
     private final UserCommandService userCommandService;
     private final UserQueryService userQueryService;

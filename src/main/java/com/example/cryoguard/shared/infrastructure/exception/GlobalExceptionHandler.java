@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import tools.jackson.core.exc.StreamReadException;
 
 import java.time.Instant;
 import java.util.LinkedHashMap;
@@ -33,6 +34,15 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, Object>> handleIllegalArg(IllegalArgumentException ex, HttpServletRequest req) {
         return build(HttpStatus.BAD_REQUEST, ex.getMessage(), req, null);
+    }
+
+    @ExceptionHandler(StreamReadException.class)
+    public ResponseEntity<Map<String, Object>> handleJacksonParse(StreamReadException ex, HttpServletRequest req) {
+        org.slf4j.LoggerFactory.getLogger(GlobalExceptionHandler.class)
+            .error("JSON parse error at {}: {}", req.getRequestURI(), ex.getMessage());
+        return build(HttpStatus.BAD_REQUEST,
+            "Malformed JSON in request body: " + ex.getOriginalMessage(),
+            req, null);
     }
 
     @ExceptionHandler(RuntimeException.class)

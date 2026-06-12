@@ -10,6 +10,7 @@ import com.example.cryoguard.logistics.presentation.resources.RouteLocationResou
 import com.example.cryoguard.logistics.presentation.resources.RouteResource;
 import com.example.cryoguard.logistics.presentation.resources.UpdateRouteResource;
 
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 /**
@@ -21,6 +22,8 @@ import java.util.List;
  * </p>
  */
 public class RouteAssembler {
+
+    private static final DateTimeFormatter ISO_FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
     /**
      * Maps Route entity to new Vue-shaped RouteResource.
@@ -40,8 +43,17 @@ public class RouteAssembler {
             progreso,
             cajasAsignadas,
             0, // alertCount - requires AlertQueryService cross-BC lookup
-            List.of() // assignedBoxes - requires ContainerQueryService cross-BC lookup
+            List.of(), // assignedBoxes - requires ContainerQueryService cross-BC lookup
+            route.getOrigin(),
+            route.getDestination(),
+            formatDateTime(route.getStartTime()),
+            formatDateTime(route.getEstimatedArrival())
         );
+    }
+
+    private static String formatDateTime(java.time.LocalDateTime dateTime) {
+        if (dateTime == null) return null;
+        return dateTime.format(ISO_FORMATTER);
     }
 
     /**
