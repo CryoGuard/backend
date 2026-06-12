@@ -56,4 +56,13 @@ public class Container {
 
     @Column(name = "operator_id")
     private Long operatorId;
+
+    @Column(name = "firmware_version")
+    private String firmwareVersion;
+
+    @Column
+    private Boolean locked;
+
+    @Column(name = "cooling_active")
+    private Boolean coolingActive;
 }

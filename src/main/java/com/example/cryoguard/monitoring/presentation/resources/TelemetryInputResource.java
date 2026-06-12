@@ -19,4 +19,5 @@ public class TelemetryInputResource {
     private BigDecimal longitude;
     private Integer batteryLevel;
     private LocalDateTime timestamp;
+    private Boolean coolingActive; // new field
 }

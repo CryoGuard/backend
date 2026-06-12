@@ -54,7 +54,9 @@ public class ContainersController {
                 resource.getTemperatureMin(),
                 resource.getTemperatureMax(),
                 resource.getHumidityMin(),
-                resource.getHumidityMax()
+                resource.getHumidityMax(),
+                resource.getFirmwareVersion(),
+                resource.getLocked()
         );
         Container container = containerCommandService.createContainer(command);
         return ResponseEntity.status(HttpStatus.CREATED).body(containerAssembler.toResource(container));
@@ -102,7 +104,9 @@ public class ContainersController {
                 resource.getTemperatureMin(),
                 resource.getTemperatureMax(),
                 resource.getHumidityMin(),
-                resource.getHumidityMax()
+                resource.getHumidityMax(),
+                resource.getFirmwareVersion(),
+                resource.getLocked()
         );
         Container container = containerCommandService.updateContainer(id, command);
         return ResponseEntity.ok(containerAssembler.toResource(container));
@@ -127,7 +131,8 @@ public class ContainersController {
                 resource.getLatitude(),
                 resource.getLongitude(),
                 resource.getBatteryLevel(),
-                resource.getTimestamp()
+                resource.getTimestamp(),
+                resource.getCoolingActive()
         );
         TelemetryReading reading = containerCommandService.recordTelemetry(command);
         return ResponseEntity.status(HttpStatus.CREATED).body(telemetryAssembler.toResource(reading));

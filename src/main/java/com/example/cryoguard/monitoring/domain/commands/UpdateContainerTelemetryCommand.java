@@ -20,4 +20,5 @@ public class UpdateContainerTelemetryCommand {
     private BigDecimal longitude;
     private Integer batteryLevel;
     private LocalDateTime timestamp;
+    private Boolean coolingActive; // new field
 }

@@ -33,6 +33,13 @@ public class ContainerCommandServiceImpl implements ContainerCommandService {
         container.setOperatorId(command.getOperatorId());
         container.setStatus(ContainerStatus.ACTIVE);
         container.setBatteryLevel(100);
+        // New fields
+        if (command.getFirmwareVersion() != null) {
+            container.setFirmwareVersion(command.getFirmwareVersion());
+        }
+        if (command.getLocked() != null) {
+            container.setLocked(command.getLocked());
+        }
         return containerRepository.save(container);
     }
 
@@ -56,6 +63,13 @@ public class ContainerCommandServiceImpl implements ContainerCommandService {
         }
         if (command.getOperatorId() != null) {
             container.setOperatorId(command.getOperatorId());
+        }
+        // New fields
+        if (command.getFirmwareVersion() != null) {
+            container.setFirmwareVersion(command.getFirmwareVersion());
+        }
+        if (command.getLocked() != null) {
+            container.setLocked(command.getLocked());
         }
 
         return containerRepository.save(container);
@@ -83,6 +97,7 @@ public class ContainerCommandServiceImpl implements ContainerCommandService {
         reading.setLatitude(command.getLatitude());
         reading.setLongitude(command.getLongitude());
         reading.setBatteryLevel(command.getBatteryLevel());
+        reading.setCoolingActive(command.getCoolingActive());
 
         // Update container with latest telemetry data
         container.setCurrentTemperature(command.getTemperature());
@@ -92,6 +107,7 @@ public class ContainerCommandServiceImpl implements ContainerCommandService {
         }
         container.setBatteryLevel(command.getBatteryLevel());
         container.setLastUpdate(LocalDateTime.now());
+        container.setCoolingActive(command.getCoolingActive());
 
         containerRepository.save(container);
         return telemetryRepository.save(reading);

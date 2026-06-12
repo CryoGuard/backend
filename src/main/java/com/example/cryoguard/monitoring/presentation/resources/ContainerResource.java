@@ -11,18 +11,19 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ContainerResource {
-    private Long id;
-    private String containerId;
-    private String name;
-    private String status;  // lowercase: active|inactive|maintenance
-    private GpsLocationDTO currentLocation;
-    private BigDecimal temperature;
-    private BigDecimal humidity;
-    private Integer batteryLevel;
-    private LocalDateTime lastUpdate;
-    private String productType;
-    private String deviceId;
-    private Long operatorId;
+    private String id;              // containerId -> Vue: id
+    private String nombre;           // name -> Vue: nombre
+    private String estado;           // status -> Vue: estado (lowercase)
+    private BigDecimal temperature;  // currentTemperature -> Vue: temperature
+    private BigDecimal humidity;     // currentHumidity -> Vue: humidity
+    private Integer batteryLevel;   // batteryLevel -> Vue: batteryLevel
+    private Boolean coolingActive;  // new: coolingActive
+    private String firmware;         // new: firmwareVersion -> Vue: firmware
+    private Boolean locked;         // new: locked
+    private Boolean connected;      // derived: lastUpdate < 5 min ago
+    private GpsLocationDTO location; // GpsCoordinates -> Vue: location
+    private String productType;     // productType -> Vue: productType
+    private LocalDateTime ultimaSync; // lastUpdate -> Vue: ultimaSync
 
     @Data
     @NoArgsConstructor

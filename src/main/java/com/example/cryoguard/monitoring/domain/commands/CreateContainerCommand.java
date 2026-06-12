@@ -19,4 +19,6 @@ public class CreateContainerCommand {
     private BigDecimal temperatureMax;
     private BigDecimal humidityMin;
     private BigDecimal humidityMax;
+    private String firmwareVersion; // new field
+    private Boolean locked;           // new field
 }

@@ -45,4 +45,7 @@ public class TelemetryReading {
 
     @Column(name = "battery_level")
     private Integer batteryLevel;
+
+    @Column(name = "cooling_active")
+    private Boolean coolingActive;
 }

@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Repository
@@ -24,4 +25,10 @@ public interface ContainerRepository extends JpaRepository<Container, Long> {
 
     @Query("SELECT c FROM Container c WHERE c.status IS NOT NULL")
     Page<Container> findAllActive(Pageable pageable);
+
+    /**
+     * Counts containers with lastUpdate after the given timestamp.
+     * Used for dashboard KPIs (connected containers count).
+     */
+    long countByLastUpdateAfter(LocalDateTime timestamp);
 }
