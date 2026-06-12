@@ -1,10 +1,20 @@
 schema: spec-driven
 
+strict_tdd: true
+
 context: |
   Tech stack: Java 21 + Spring Boot 4 + Maven + H2 (dev) / PostgreSQL NeonDB (prod)
   Architecture: DDD with CQRS - Bounded Contexts per domain (iam, monitoring, evaluation, logistics, actuators, operations, notifications, audit)
   Testing: JUnit 5 + Mockito
   Style: Lombok, JPA Auditing, JWT authentication
+
+testing:
+  runner: ./mvnw test
+  framework: JUnit 5 + Mockito
+  unit: true
+  integration: true (limited - only smoke test exists)
+  e2e: false
+  coverage: false
 
 rules:
   proposal:
