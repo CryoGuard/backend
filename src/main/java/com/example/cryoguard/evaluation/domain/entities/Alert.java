@@ -64,4 +64,12 @@ public class Alert {
 
     @Column(name = "longitude", precision = 10, scale = 6)
     private BigDecimal longitude;
+
+    // T2.1: triggerValue - raw sensor reading that caused the alert (e.g., "8.5°C", "18%", "> 5 min")
+    @Column(name = "trigger_value", length = 50)
+    private String triggerValue;
+
+    // T2.1: tripId - reference to the route if container was on an active route when alert was generated
+    @Column(name = "trip_id")
+    private Long tripId;
 }

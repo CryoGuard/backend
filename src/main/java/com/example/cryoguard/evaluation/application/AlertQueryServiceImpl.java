@@ -7,7 +7,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 @Service
@@ -15,6 +17,9 @@ import java.util.Optional;
 public class AlertQueryServiceImpl implements AlertQueryService {
 
     private final AlertRepository alertRepository;
+
+    private static final DateTimeFormatter TIMESTAMP_FORMATTER =
+        DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm", Locale.forLanguageTag("es-PE"));
 
     @Override
     public Optional<Alert> getAlertById(Long alertId) {
@@ -48,5 +53,40 @@ public class AlertQueryServiceImpl implements AlertQueryService {
     @Override
     public Page<Alert> getAlertsByFilters(String severity, String status, Pageable pageable) {
         return alertRepository.findByFilters(severity, status, pageable);
+    }
+
+    @Override
+    public List<AlertSummaryDto> getActiveAlertsByContainerIds(List<Long> containerIds) {
+        if (containerIds == null || containerIds.isEmpty()) {
+            return List.of();
+        }
+        return alertRepository.findByContainerIdInAndResolvedFalse(containerIds).stream()
+            .map(this::toAlertSummaryDto)
+            .toList();
+    }
+
+    private AlertSummaryDto toAlertSummaryDto(Alert alert) {
+        String severity = alert.getSeverity() == com.example.cryoguard.evaluation.domain.valueobjects.AlertSeverity.CRITICAL
+            ? "critica" : "advertencia";
+        String status = deriveStatus(alert.getAcknowledged(), alert.getResolved());
+        String timestamp = alert.getTimestamp() != null
+            ? alert.getTimestamp().format(TIMESTAMP_FORMATTER) : "";
+        return new AlertSummaryDto(
+            alert.getAlertId(),
+            severity,
+            status,
+            alert.getMessage(),
+            timestamp
+        );
+    }
+
+    private String deriveStatus(Boolean acknowledged, Boolean resolved) {
+        if (Boolean.TRUE.equals(resolved)) {
+            return "confirmada";
+        } else if (Boolean.TRUE.equals(acknowledged)) {
+            return "pendiente";
+        } else {
+            return "activa";
+        }
     }
 }
