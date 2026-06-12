@@ -24,7 +24,8 @@ public class ContainerResourceAssembler {
         boolean connected = isConnected(container.getLastUpdate());
 
         return new ContainerResource(
-                container.getContainerId(),        // id
+                container.getId(),                 // id (database ID)
+                container.getContainerId(),        // containerId (business ID)
                 container.getName(),              // nombre
                 container.getStatus().name().toLowerCase(), // estado
                 container.getCurrentTemperature(), // temperature

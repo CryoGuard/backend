@@ -78,6 +78,9 @@ public class ContainerCommandServiceImpl implements ContainerCommandService {
     @Override
     @Transactional
     public void deleteContainer(Long id) {
+        if (!containerRepository.existsById(id)) {
+            throw new IllegalArgumentException("Container not found: " + id);
+        }
         containerRepository.deleteById(id);
     }
 

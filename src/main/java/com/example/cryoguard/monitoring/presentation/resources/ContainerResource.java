@@ -11,7 +11,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ContainerResource {
-    private String id;              // containerId -> Vue: id
+    private Long id;                // database ID -> Vue: apiId
+    private String containerId;     // business ID -> Vue: id
     private String nombre;           // name -> Vue: nombre
     private String estado;           // status -> Vue: estado (lowercase)
     private BigDecimal temperature;  // currentTemperature -> Vue: temperature
