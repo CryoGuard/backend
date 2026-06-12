@@ -10,6 +10,9 @@ import com.example.cryoguard.iam.domain.model.commands.DisableUserCommand;
 import com.example.cryoguard.iam.domain.services.UserCommandService;
 import com.example.cryoguard.iam.infrastructure.persistence.jpa.repositories.RoleRepository;
 import com.example.cryoguard.iam.infrastructure.persistence.jpa.repositories.UserRepository;
+import com.example.cryoguard.shared.domain.exceptions.DuplicateUserException;
+import com.example.cryoguard.shared.domain.exceptions.InvalidCredentialsException;
+import com.example.cryoguard.shared.domain.exceptions.UserNotFoundException;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.springframework.stereotype.Service;
 
@@ -50,12 +53,10 @@ public class UserCommandServiceImpl implements UserCommandService {
     @Override
     public Optional<ImmutablePair<User, String>> handle(SignInCommand command) {
         var user = userRepository.findByEmailIgnoreCase(command.email());
-        if (user.isEmpty())
-            throw new RuntimeException("User not found");
+        if (user.isEmpty() || !hashingService.matches(command.password(), user.get().getPassword()))
+            throw new InvalidCredentialsException();
         if (user.get().isLocked())
             throw new LockedUserException("User account is locked");
-        if (!hashingService.matches(command.password(), user.get().getPassword()))
-            throw new RuntimeException("Invalid password");
 
         // Record last login
         user.get().recordLogin();
@@ -68,9 +69,9 @@ public class UserCommandServiceImpl implements UserCommandService {
     /**
      * Exception for locked user accounts
      */
-    public static class LockedUserException extends RuntimeException {
+    public static class LockedUserException extends com.example.cryoguard.shared.domain.exceptions.BusinessException {
         public LockedUserException(String message) {
-            super(message);
+            super(org.springframework.http.HttpStatus.FORBIDDEN, message, "status");
         }
     }
 
@@ -85,15 +86,16 @@ public class UserCommandServiceImpl implements UserCommandService {
     @Override
     public Optional<User> handle(SignUpCommand command) {
         if (userRepository.existsByUsername(command.username()))
-            throw new RuntimeException("Username already exists");
+            throw new DuplicateUserException(DuplicateUserException.Field.USERNAME, command.username());
         if (userRepository.existsByEmail(command.email()))
-            throw new RuntimeException("Email already exists");
+            throw new DuplicateUserException(DuplicateUserException.Field.EMAIL, command.email());
 
         var role = (command.role() == null)
-            ? roleRepository.findByName(com.example.cryoguard.iam.domain.model.valueobjects.Roles.ROLE_OPERATOR).orElseThrow(() -> new RuntimeException("Role not found"))
-            : roleRepository.findByName(command.role().getName()).orElseThrow(() -> new RuntimeException("Role not found: " + command.role().getName()));
+            ? roleRepository.findByName(com.example.cryoguard.iam.domain.model.valueobjects.Roles.ROLE_OPERATOR).orElseThrow(() -> new UserNotFoundException("default role not seeded"))
+            : roleRepository.findByName(command.role().getName()).orElseThrow(() -> new IllegalArgumentException("Role not found: " + command.role().getName()));
 
         var user = new User(command.username(), hashingService.encode(command.password()), command.email(), List.of(role));
+        user.setTelefono(command.telefono());
         userRepository.save(user);
         return userRepository.findByUsername(command.username());
     }
@@ -110,7 +112,7 @@ public class UserCommandServiceImpl implements UserCommandService {
     public Optional<User> handle(UpdateUserCommand command) {
         var userOpt = userRepository.findById(command.userId());
         if (userOpt.isEmpty())
-            throw new RuntimeException("User not found");
+            throw new UserNotFoundException(command.userId());
 
         var user = userOpt.get();
 
@@ -126,8 +128,12 @@ public class UserCommandServiceImpl implements UserCommandService {
         }
         if (command.role() != null && !command.role().isBlank()) {
             var role = roleRepository.findByName(com.example.cryoguard.iam.domain.model.valueobjects.Roles.valueOf(command.role().trim().toUpperCase()))
-                .orElseThrow(() -> new RuntimeException("Role not found: " + command.role()));
+                .orElseThrow(() -> new IllegalArgumentException("Role not found: " + command.role()));
             user.setRoles(new java.util.HashSet<>(List.of(role)));
+        }
+        // Update telefono only if provided (null means preserve existing)
+        if (command.telefono() != null) {
+            user.setTelefono(command.telefono());
         }
 
         userRepository.save(user);
@@ -145,8 +151,8 @@ public class UserCommandServiceImpl implements UserCommandService {
     public void handle(DisableUserCommand command) {
         var userOpt = userRepository.findById(command.userId());
         if (userOpt.isEmpty())
-            throw new RuntimeException("User not found");
-            
+            throw new UserNotFoundException(command.userId());
+
         var user = userOpt.get();
         user.disable();
         userRepository.save(user);

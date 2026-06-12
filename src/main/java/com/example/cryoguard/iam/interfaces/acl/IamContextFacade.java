@@ -36,7 +36,7 @@ public class IamContextFacade {
      * @return The id of the created user.
      */
     public Long createUser(String username, String email, String password) {
-        var signUpCommand = new SignUpCommand(username, email, password, Role.getDefaultRole());
+        var signUpCommand = new SignUpCommand(username, email, password, Role.getDefaultRole(), null);
         var result = userCommandService.handle(signUpCommand);
         if (result.isEmpty()) return 0L;
         return result.get().getId();
@@ -54,7 +54,7 @@ public class IamContextFacade {
         var role = (roleNames != null && !roleNames.isEmpty())
             ? Role.toRoleFromName(roleNames.get(0))
             : Role.getDefaultRole();
-        var signUpCommand = new SignUpCommand(username, email, password, role);
+        var signUpCommand = new SignUpCommand(username, email, password, role, null);
         var result = userCommandService.handle(signUpCommand);
         if (result.isEmpty()) return 0L;
         return result.get().getId();

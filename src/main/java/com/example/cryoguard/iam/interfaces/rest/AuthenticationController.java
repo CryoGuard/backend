@@ -9,10 +9,12 @@ import com.example.cryoguard.iam.interfaces.rest.resources.UserResource;
 import com.example.cryoguard.iam.interfaces.rest.transform.SignInCommandFromResourceAssembler;
 import com.example.cryoguard.iam.interfaces.rest.transform.SignUpCommandFromResourceAssembler;
 import com.example.cryoguard.iam.interfaces.rest.transform.UserResourceFromEntityAssembler;
+import com.example.cryoguard.logistics.interfaces.acl.RouteStatsDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -36,9 +38,12 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Authentication", description = "Available Authentication Endpoints")
 public class AuthenticationController {
     private final UserCommandService userCommandService;
+    private final com.example.cryoguard.iam.interfaces.acl.LogisticsQueryService logisticsQueryService;
 
-    public AuthenticationController(UserCommandService userCommandService) {
+    public AuthenticationController(UserCommandService userCommandService,
+            @Autowired(required = false) com.example.cryoguard.iam.interfaces.acl.LogisticsQueryService logisticsQueryService) {
         this.userCommandService = userCommandService;
+        this.logisticsQueryService = logisticsQueryService;
     }
 
     /**
@@ -62,27 +67,20 @@ public class AuthenticationController {
             var user = result.get().getLeft();
             var token = result.get().getRight();
 
-            // Get primary role as lowercase string
-            String role = user.getRoles().stream()
-                    .map(r -> {
-                        String name = r.getName().name();
-                        if (name.startsWith("ROLE_")) {
-                            name = name.substring(5);
-                        }
-                        return name.toLowerCase();
-                    })
-                    .findFirst()
-                    .orElse("operator");
+            // Get trip stats from logistics (or fallback to zero)
+            RouteStatsDto stats = RouteStatsDto.zero();
+            if (logisticsQueryService != null) {
+                try {
+                    stats = logisticsQueryService.getStatsByOperator(user.getId());
+                } catch (Exception e) {
+                    // Fallback to zero if logistics is unavailable
+                }
+            }
 
-            var loginResponse = new LoginResponseResource(
-                token,
-                new LoginResponseResource.UserInfoResource(
-                    user.getId(),
-                    user.getUsername(),
-                    user.getEmail(),
-                    role
-                )
-            );
+            // Build UserResource with computed fields using the assembler
+            UserResource userResource = UserResourceFromEntityAssembler.toResourceFromEntity(user, stats);
+
+            var loginResponse = new LoginResponseResource(token, userResource);
             return ResponseEntity.ok(loginResponse);
         } catch (UserCommandServiceImpl.LockedUserException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();

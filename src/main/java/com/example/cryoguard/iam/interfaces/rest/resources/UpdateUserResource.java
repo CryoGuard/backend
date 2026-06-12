@@ -13,11 +13,13 @@ import java.util.List;
  * @param email the new email
  * @param roles the new roles
  * @param status the new status
+ * @param telefono the optional phone number (null means don't update phone)
  */
 public record UpdateUserResource(
     String username,
     String email,
     List<String> roles,
-    User.UserStatus status
+    User.UserStatus status,
+    String telefono
 ) {
 }

@@ -1,12 +1,15 @@
 package com.example.cryoguard.iam.interfaces.rest;
 
 import com.example.cryoguard.iam.domain.model.aggregates.User;
+import com.example.cryoguard.iam.domain.model.commands.ResetUserPinCommand;
 import com.example.cryoguard.iam.domain.model.commands.SignUpCommand;
 import com.example.cryoguard.iam.domain.model.commands.UpdateUserCommand;
 import com.example.cryoguard.iam.domain.model.queries.GetAllUsersQuery;
 import com.example.cryoguard.iam.domain.model.queries.GetUserByIdQuery;
+import com.example.cryoguard.iam.domain.services.ResetUserPinCommandService;
 import com.example.cryoguard.iam.domain.services.UserCommandService;
 import com.example.cryoguard.iam.domain.services.UserQueryService;
+import com.example.cryoguard.iam.interfaces.rest.resources.ResetPinResponseResource;
 import com.example.cryoguard.iam.interfaces.rest.resources.SignUpResource;
 import com.example.cryoguard.iam.interfaces.rest.resources.UpdateUserResource;
 import com.example.cryoguard.iam.interfaces.rest.resources.UserResource;
@@ -40,10 +43,12 @@ import java.util.List;
 public class UsersController {
     private final UserCommandService userCommandService;
     private final UserQueryService userQueryService;
+    private final ResetUserPinCommandService resetUserPinCommandService;
 
-    public UsersController(UserCommandService userCommandService, UserQueryService userQueryService) {
+    public UsersController(UserCommandService userCommandService, UserQueryService userQueryService, ResetUserPinCommandService resetUserPinCommandService) {
         this.userCommandService = userCommandService;
         this.userQueryService = userQueryService;
+        this.resetUserPinCommandService = resetUserPinCommandService;
     }
 
     /**
@@ -151,5 +156,26 @@ public class UsersController {
         var disableUserCommand = new com.example.cryoguard.iam.domain.model.commands.DisableUserCommand(userId);
         userCommandService.handle(disableUserCommand);
         return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Reset user PIN (password) to a new random 4-digit value
+     * @param userId the user id
+     * @return the new plain-text PIN
+     */
+    @PostMapping(value = "/{userId}/reset-password")
+    @Operation(summary = "Reset user PIN", description = "Resets the user's PIN to a new random 4-digit value.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "PIN reset successfully."),
+            @ApiResponse(responseCode = "404", description = "User not found."),
+            @ApiResponse(responseCode = "401", description = "Unauthorized.")})
+    public ResponseEntity<ResetPinResponseResource> resetPassword(@PathVariable Long userId) {
+        try {
+            var command = new ResetUserPinCommand(userId);
+            var newPin = resetUserPinCommandService.handle(command);
+            return ResponseEntity.ok(new ResetPinResponseResource(newPin));
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 }

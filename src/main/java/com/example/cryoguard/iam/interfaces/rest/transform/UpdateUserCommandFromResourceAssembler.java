@@ -10,7 +10,8 @@ public class UpdateUserCommandFromResourceAssembler {
             resource.username(),
             resource.email(),
             resource.roles() != null && !resource.roles().isEmpty() ? resource.roles().get(0) : null,
-            resource.status()
+            resource.status(),
+            resource.telefono()
         );
     }
 }

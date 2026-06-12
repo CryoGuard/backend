@@ -11,6 +11,6 @@ public class SignUpCommandFromResourceAssembler {
         var role = resource.role() != null && !resource.role().isBlank()
             ? Role.toRoleFromName(resource.role())
             : null;
-        return new SignUpCommand(resource.username(), resource.email(), resource.password(), role);
+        return new SignUpCommand(resource.username(), resource.email(), resource.password(), role, resource.telefono());
     }
 }

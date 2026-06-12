@@ -11,6 +11,7 @@ import java.util.List;
  * @param email the email
  * @param password the password
  * @param role the role (ADMINISTRATOR or OPERATOR)
+ * @param telefono the optional phone number
  */
-public record SignUpResource(String username, String email, String password, String role) {
+public record SignUpResource(String username, String email, String password, String role, String telefono) {
 }

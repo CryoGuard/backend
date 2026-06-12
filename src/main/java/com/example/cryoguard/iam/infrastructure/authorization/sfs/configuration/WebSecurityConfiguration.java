@@ -81,7 +81,8 @@ public class WebSecurityConfiguration {
 
     /**
      * This method creates the security filter chain.
-     * It also configures the http security with CORS enabled for all origins.
+     * It also configures the http security with CORS enabled for Vue frontend origins.
+     * Allows localhost:5173 (Vue default), localhost:3000, and 127.0.0.1:5173 for development.
      *
      * @param http The {@link HttpSecurity} object to configure with the security filter chain
      * @return The {@link SecurityFilterChain} instance with the application http security configuration
@@ -90,9 +91,16 @@ public class WebSecurityConfiguration {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.cors(configurer -> configurer.configurationSource(request -> {
             var cors = new CorsConfiguration();
-            cors.setAllowedOrigins(List.of("*"));
-            cors.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+            // Allow Vue frontend origins for development
+            cors.setAllowedOrigins(List.of(
+                "http://localhost:5173",
+                "http://localhost:3000",
+                "http://127.0.0.1:5173"
+            ));
+            cors.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
             cors.setAllowedHeaders(List.of("*"));
+            cors.setAllowCredentials(true);
+            cors.setMaxAge(3600L); // Cache preflight response for 1 hour
             return cors;
         }));
         http.csrf(csrfConfigurer -> csrfConfigurer.disable())

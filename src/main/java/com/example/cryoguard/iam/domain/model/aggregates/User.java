@@ -46,6 +46,10 @@ public class User extends AuditableAbstractAggregateRoot<User> {
     @Column
     private Date lastLogin;
 
+    @Size(max = 20)
+    @Column(length = 20, nullable = true)
+    private String telefono;
+
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id"),
@@ -159,6 +163,14 @@ public class User extends AuditableAbstractAggregateRoot<User> {
 
     public void setRoles(Set<Role> roles) {
         this.roles = roles;
+    }
+
+    public String getTelefono() {
+        return this.telefono;
+    }
+
+    public void setTelefono(String telefono) {
+        this.telefono = telefono;
     }
 
     /**

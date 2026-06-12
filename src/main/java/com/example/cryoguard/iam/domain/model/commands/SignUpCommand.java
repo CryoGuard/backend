@@ -11,6 +11,7 @@ import com.example.cryoguard.iam.domain.model.entities.Role;
  * @param email the email of the user
  * @param password the password of the user
  * @param role the role of the user
+ * @param telefono the optional phone number of the user
  */
-public record SignUpCommand(String username, String email, String password, Role role) {
+public record SignUpCommand(String username, String email, String password, Role role, String telefono) {
 }

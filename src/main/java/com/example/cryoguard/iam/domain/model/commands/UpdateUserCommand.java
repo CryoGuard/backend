@@ -15,12 +15,14 @@ import java.util.List;
  * @param email the new email
  * @param role the new role
  * @param status the new status
+ * @param telefono the optional phone number (null means don't update phone)
  */
 public record UpdateUserCommand(
     Long userId,
     String username,
     String email,
     String role,
-    User.UserStatus status
+    User.UserStatus status,
+    String telefono
 ) {
 }
