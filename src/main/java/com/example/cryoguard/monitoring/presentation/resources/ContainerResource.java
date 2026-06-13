@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 public class ContainerResource {
     private Long id;                // database ID -> Vue: apiId
     private String containerId;     // business ID -> Vue: id
-    private String nombre;           // name -> Vue: nombre
+    private String name;            // name -> Vue: nombre
     private String estado;           // status -> Vue: estado (lowercase)
     private BigDecimal temperature;  // currentTemperature -> Vue: temperature
     private BigDecimal humidity;     // currentHumidity -> Vue: humidity
@@ -24,6 +24,7 @@ public class ContainerResource {
     private Boolean connected;      // derived: lastUpdate < 5 min ago
     private GpsLocationDTO location; // GpsCoordinates -> Vue: location
     private String productType;     // productType -> Vue: productType
+    private String deviceId;        // hardware device ID -> Vue: dispositivoId
     private LocalDateTime ultimaSync; // lastUpdate -> Vue: ultimaSync
 
     @Data

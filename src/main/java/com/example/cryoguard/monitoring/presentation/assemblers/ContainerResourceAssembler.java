@@ -26,7 +26,7 @@ public class ContainerResourceAssembler {
         return new ContainerResource(
                 container.getId(),                 // id (database ID)
                 container.getContainerId(),        // containerId (business ID)
-                container.getName(),              // nombre
+                container.getName(),              // name
                 container.getStatus().name().toLowerCase(), // estado
                 container.getCurrentTemperature(), // temperature
                 container.getCurrentHumidity(),   // humidity
@@ -37,6 +37,7 @@ public class ContainerResourceAssembler {
                 connected,                         // connected
                 locationDTO,                       // location
                 container.getProductType(),        // productType
+                container.getDeviceId(),           // deviceId
                 container.getLastUpdate()          // ultimaSync
         );
     }
