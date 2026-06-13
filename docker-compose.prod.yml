@@ -1,0 +1,20 @@
+services:
+  cryoguard-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cryoguard-backend
+    environment:
+      # Perfil dev con H2 en memoria (no requiere base de datos externa)
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_DATASOURCE_URL=jdbc:h2:mem:cryoguard;DB_CLOSE_DELAY=-1
+      - SPRING_DATASOURCE_DRIVER-CLASSNAME=org.h2.Driver
+      - SPRING_DATASOURCE_USERNAME=sa
+      - SPRING_DATASOURCE_PASSWORD=
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=create-drop
+      - SPRING_JPA_SHOW_SQL=true
+      - SPRING_H2_CONSOLE_ENABLED=true
+      # JWT Configuration
+      - AUTHORIZATION_JWT_SECRET=cryoguard-256-bit-secret-key-for-jwt-token-signing-must-be-long-enough
+      - AUTHORIZATION_JWT_EXPIRATION_DAYS=7
+    restart: unless-stopped
