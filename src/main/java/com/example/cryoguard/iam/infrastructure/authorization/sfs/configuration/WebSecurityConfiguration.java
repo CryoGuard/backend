@@ -92,10 +92,12 @@ public class WebSecurityConfiguration {
         http.cors(configurer -> configurer.configurationSource(request -> {
             var cors = new CorsConfiguration();
             // Allow Vue frontend origins for development
-            cors.setAllowedOrigins(List.of(
-                "http://localhost:5173",
-                "http://localhost:3000",
-                "http://127.0.0.1:5173"
+            cors.setAllowedOriginPatterns(List.of(
+                "http://localhost:*",
+                "https://localhost:*",
+                "http://127.0.0.1:*",
+                "http://*.sslip.io",
+                "https://*.sslip.io"
             ));
             cors.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
             cors.setAllowedHeaders(List.of("*"));
