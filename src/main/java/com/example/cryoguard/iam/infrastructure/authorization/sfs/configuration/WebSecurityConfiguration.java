@@ -91,18 +91,13 @@ public class WebSecurityConfiguration {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.cors(configurer -> configurer.configurationSource(request -> {
             var cors = new CorsConfiguration();
-            // Allow Vue frontend origins for development
-            cors.setAllowedOriginPatterns(List.of(
-                "http://localhost:*",
-                "https://localhost:*",
-                "http://127.0.0.1:*",
-                "http://*.sslip.io",
-                "https://*.sslip.io"
-            ));
+            // Fully open CORS for academic project - any origin, any method, any header
+            cors.setAllowedOriginPatterns(List.of("*"));
             cors.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
             cors.setAllowedHeaders(List.of("*"));
-            cors.setAllowCredentials(true);
-            cors.setMaxAge(3600L); // Cache preflight response for 1 hour
+            cors.setExposedHeaders(List.of("Authorization", "Content-Type", "Accept"));
+            cors.setAllowCredentials(false);  // Required to be false with wildcard origins
+            cors.setMaxAge(3600L);  // Cache preflight for 1 hour
             return cors;
         }));
         http.csrf(csrfConfigurer -> csrfConfigurer.disable())
