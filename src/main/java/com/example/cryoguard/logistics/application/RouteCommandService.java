@@ -144,7 +144,12 @@ public class RouteCommandService {
     }
 
     private String generateRouteId() {
-        long count = routeRepository.count();
-        return String.format("ROUTE-%03d", count + 1);
+        String maxRouteId = routeRepository.findMaxRouteId();
+        if (maxRouteId == null) {
+            return "ROUTE-001";
+        }
+        // Extract the number from "ROUTE-XXX"
+        int maxNum = Integer.parseInt(maxRouteId.substring(6));
+        return String.format("ROUTE-%03d", maxNum + 1);
     }
 }

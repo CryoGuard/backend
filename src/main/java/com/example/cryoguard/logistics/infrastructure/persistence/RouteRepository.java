@@ -28,4 +28,8 @@ public interface RouteRepository extends JpaRepository<Route, Long> {
     // For getInfoByContainerCode - find active route by container code via assignments
     @Query("SELECT r FROM Route r JOIN r.containerAssignments rca WHERE rca.containerId = :containerId AND r.status IN :statuses")
     List<Route> findActiveRoutesByContainerId(@Param("containerId") Long containerId, @Param("statuses") List<RouteStatus> statuses);
+
+    // Find max route number for ID generation
+    @Query("SELECT MAX(r.routeId) FROM Route r")
+    String findMaxRouteId();
 }
