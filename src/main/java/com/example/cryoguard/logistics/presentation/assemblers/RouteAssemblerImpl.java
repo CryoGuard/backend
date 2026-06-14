@@ -2,10 +2,12 @@ package com.example.cryoguard.logistics.presentation.assemblers;
 
 import com.example.cryoguard.iam.interfaces.acl.IamContextFacade;
 import com.example.cryoguard.logistics.domain.aggregates.Route;
+import com.example.cryoguard.logistics.domain.entities.RouteContainerAssignment;
 import com.example.cryoguard.logistics.domain.entities.RouteLocationHistory;
 import com.example.cryoguard.logistics.domain.valueobjects.RouteStatus;
 import com.example.cryoguard.logistics.presentation.resources.RouteLocationResource;
 import com.example.cryoguard.logistics.presentation.resources.RouteResource;
+import com.example.cryoguard.monitoring.interfaces.acl.ContainerQueryService;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -15,7 +17,7 @@ import java.util.List;
 /**
  * RouteAssemblerImpl - Spring-managed assembler with cross-BC service injection.
  * <p>
- * Computes cross-BC fields (operador) via IamContextFacade.
+ * Computes cross-BC fields (operador, assignedBoxes) via IamContextFacade and ContainerQueryService.
  * </p>
  */
 @Component
@@ -24,9 +26,11 @@ public class RouteAssemblerImpl {
     private static final DateTimeFormatter ISO_FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
     private final IamContextFacade iamContextFacade;
+    private final ContainerQueryService containerQueryService;
 
-    public RouteAssemblerImpl(IamContextFacade iamContextFacade) {
+    public RouteAssemblerImpl(IamContextFacade iamContextFacade, ContainerQueryService containerQueryService) {
         this.iamContextFacade = iamContextFacade;
+        this.containerQueryService = containerQueryService;
     }
 
     public RouteResource toResource(Route route) {
@@ -38,6 +42,9 @@ public class RouteAssemblerImpl {
         String startTime = formatDateTime(route.getStartTime());
         String estimatedArrival = formatDateTime(route.getEstimatedArrival());
 
+        // Compute assignedBoxes from container assignments
+        List<String> assignedBoxes = computeAssignedBoxes(route.getContainerAssignments());
+
         return new RouteResource(
             route.getId(),
             route.getRouteId(),
@@ -46,12 +53,22 @@ public class RouteAssemblerImpl {
             progreso,
             cajasAsignadas,
             0,
-            List.of(),
+            assignedBoxes,
             route.getOrigin(),
             route.getDestination(),
             startTime,
             estimatedArrival
         );
+    }
+
+    private List<String> computeAssignedBoxes(List<RouteContainerAssignment> assignments) {
+        if (assignments == null || assignments.isEmpty()) {
+            return List.of();
+        }
+        return assignments.stream()
+            .map(RouteContainerAssignment::getContainerId)
+            .map(containerQueryService::getCode)
+            .toList();
     }
 
     public List<RouteResource> toResourceList(List<Route> routes) {
