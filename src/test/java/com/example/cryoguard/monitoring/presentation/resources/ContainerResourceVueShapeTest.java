@@ -22,8 +22,9 @@ class ContainerResourceVueShapeTest {
                 new BigDecimal("-12.0464"), new BigDecimal("-77.0428"));
 
         ContainerResource resource = new ContainerResource(
-                "CG-001",           // id (containerId)
-                "Contenedor 1",     // nombre (name)
+                1L,                 // id
+                "CG-001",           // containerId
+                "Contenedor 1",     // name
                 "active",           // estado (status)
                 new BigDecimal("2.5"),  // temperature
                 new BigDecimal("65"), // humidity
@@ -34,12 +35,13 @@ class ContainerResourceVueShapeTest {
                 true,               // connected
                 location,           // location
                 "Vacunas",          // productType
+                "DEV-001",          // deviceId
                 lastUpdate          // ultimaSync (lastUpdate)
         );
 
         // THEN all fields should be correctly set
-        assertEquals("CG-001", resource.getId());
-        assertEquals("Contenedor 1", resource.getNombre());
+        assertEquals("CG-001", resource.getContainerId());
+        assertEquals("Contenedor 1", resource.getName());
         assertEquals("active", resource.getEstado());
         assertEquals(new BigDecimal("2.5"), resource.getTemperature());
         assertEquals(new BigDecimal("65"), resource.getHumidity());

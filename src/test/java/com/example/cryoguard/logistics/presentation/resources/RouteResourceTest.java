@@ -12,7 +12,7 @@ class RouteResourceTest {
     void shouldCreateRouteResourceWithAllFields() {
         RouteResource resource = new RouteResource(
             1L, "V-2024-0156", "en_ruta", "Juan Pérez",
-            65, 8, 1, List.of("CG-001", "CG-002"), "Lima", "Arequipa"
+            65, 8, 1, List.of("CG-001", "CG-002"), "Lima", "Arequipa", null, null
         );
 
         assertEquals(1L, resource.id());
@@ -31,7 +31,7 @@ class RouteResourceTest {
     void shouldCreateRouteResourceWithoutOperator() {
         RouteResource resource = RouteResource.withoutOperator(
             2L, "V-2024-0157", "iniciado",
-            30, 2, 0, List.of(), "Lima", "Trujillo"
+            30, 2, 0, List.of(), "Lima", "Trujillo", null, null
         );
 
         assertEquals(2L, resource.id());
@@ -66,10 +66,10 @@ class RouteResourceTest {
         // GIVEN routes with statuses INITIATED, IN_PROGRESS, COMPLETED, CANCELLED
         // WHEN client requests GET /api/v1/routes
         // THEN status values in responses SHALL be: INITIATED→"iniciado", IN_PROGRESS→"en_ruta"
-        RouteResource initiated = new RouteResource(1L, "R1", "iniciado", null, 0, 0, 0, List.of(), "Lima", "Arequipa");
-        RouteResource inProgress = new RouteResource(2L, "R2", "en_ruta", null, 0, 0, 0, List.of(), "Lima", "Trujillo");
-        RouteResource completed = new RouteResource(3L, "R3", "completado", null, 0, 0, 0, List.of(), "Lima", "Cusco");
-        RouteResource cancelled = new RouteResource(4L, "R4", "cancelado", null, 0, 0, 0, List.of(), "Lima", "Iquitos");
+        RouteResource initiated = new RouteResource(1L, "R1", "iniciado", null, 0, 0, 0, List.of(), "Lima", "Arequipa", null, null);
+        RouteResource inProgress = new RouteResource(2L, "R2", "en_ruta", null, 0, 0, 0, List.of(), "Lima", "Trujillo", null, null);
+        RouteResource completed = new RouteResource(3L, "R3", "completado", null, 0, 0, 0, List.of(), "Lima", "Cusco", null, null);
+        RouteResource cancelled = new RouteResource(4L, "R4", "cancelado", null, 0, 0, 0, List.of(), "Lima", "Iquitos", null, null);
 
         assertEquals("iniciado", initiated.estado());
         assertEquals("en_ruta", inProgress.estado());
@@ -80,7 +80,7 @@ class RouteResourceTest {
     @Test
     void shouldReturnEmptyAssignedBoxesWhenNoContainers() {
         RouteResource resource = RouteResource.withoutOperator(
-            5L, "R5", "active", 0, 0, 0, List.of(), "Lima", "Arequipa"
+            5L, "R5", "active", 0, 0, 0, List.of(), "Lima", "Arequipa", null, null
         );
 
         assertTrue(resource.assignedBoxes().isEmpty());

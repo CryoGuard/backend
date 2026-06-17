@@ -148,11 +148,13 @@ class SmokeTest {
         // Test: PUT /api/v1/users/{id} (update user)
         if (usersBody.get("content").size() > 0) {
             Long userId = usersBody.get("content").get(0).get("id").asLong();
-            String updateJson = "{\"name\":\"Updated Name\",\"status\":\"active\"}";
+            String updateJson = "{\"name\":\"Updated Name\",\"status\":\"ACTIVE\"}";
+            HttpHeaders putHeaders = authHeaders();
+            putHeaders.setContentType(MediaType.APPLICATION_JSON);
             ResponseEntity<String> updateResponse = restTemplate.exchange(
                 baseUrl() + "/users/" + userId,
                 HttpMethod.PUT,
-                new HttpEntity<>(updateJson, authHeaders()),
+                new HttpEntity<>(updateJson, putHeaders),
                 String.class
             );
             assertEquals(HttpStatus.OK, updateResponse.getStatusCode(), "PUT /users/{id} should return 200");
