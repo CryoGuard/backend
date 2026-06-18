@@ -36,7 +36,7 @@ public class RouteQueryService {
     }
 
     public List<Route> getActiveRoutes(GetActiveRoutesQuery query) {
-        return routeRepository.findByStatus(RouteStatus.active);
+        return routeRepository.findByStatus(RouteStatus.PLANNED);
     }
 
     public List<Route> getAllRoutes() {

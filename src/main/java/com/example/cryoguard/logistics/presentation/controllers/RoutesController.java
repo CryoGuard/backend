@@ -95,6 +95,20 @@ public class RoutesController {
         return ResponseEntity.ok(completed);
     }
 
+    @PostMapping("/{id}/start")
+    @Operation(summary = "Start route", description = "Starts a planned route, changing status to IN_PROGRESS.")
+    public ResponseEntity<Void> startRoute(@PathVariable Long id) {
+        commandService.startRoute(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{id}/cancel")
+    @Operation(summary = "Cancel route", description = "Cancels a route that is not yet completed.")
+    public ResponseEntity<Void> cancelRoute(@PathVariable Long id) {
+        commandService.cancelRoute(id);
+        return ResponseEntity.ok().build();
+    }
+
     @GetMapping("/{id}/history")
     @Operation(summary = "Get route location history", description = "Retrieves the location history for a specific route.")
     public ResponseEntity<List<RouteLocationResource>> getRouteHistory(@PathVariable Long id) {

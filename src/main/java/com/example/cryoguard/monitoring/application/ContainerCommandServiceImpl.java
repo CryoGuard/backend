@@ -45,6 +45,19 @@ public class ContainerCommandServiceImpl implements ContainerCommandService {
         if (command.getLocked() != null) {
             container.setLocked(command.getLocked());
         }
+        // Temperature/humidity limits
+        if (command.getTemperatureMin() != null) {
+            container.setTemperatureMin(command.getTemperatureMin());
+        }
+        if (command.getTemperatureMax() != null) {
+            container.setTemperatureMax(command.getTemperatureMax());
+        }
+        if (command.getHumidityMin() != null) {
+            container.setHumidityMin(command.getHumidityMin());
+        }
+        if (command.getHumidityMax() != null) {
+            container.setHumidityMax(command.getHumidityMax());
+        }
         return containerRepository.save(container);
     }
 
@@ -75,6 +88,19 @@ public class ContainerCommandServiceImpl implements ContainerCommandService {
         }
         if (command.getLocked() != null) {
             container.setLocked(command.getLocked());
+        }
+        // Temperature/humidity limits
+        if (command.getTemperatureMin() != null) {
+            container.setTemperatureMin(command.getTemperatureMin());
+        }
+        if (command.getTemperatureMax() != null) {
+            container.setTemperatureMax(command.getTemperatureMax());
+        }
+        if (command.getHumidityMin() != null) {
+            container.setHumidityMin(command.getHumidityMin());
+        }
+        if (command.getHumidityMax() != null) {
+            container.setHumidityMax(command.getHumidityMax());
         }
 
         return containerRepository.save(container);

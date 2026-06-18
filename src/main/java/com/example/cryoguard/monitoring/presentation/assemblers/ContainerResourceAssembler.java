@@ -38,7 +38,11 @@ public class ContainerResourceAssembler {
                 locationDTO,                       // location
                 container.getProductType(),        // productType
                 container.getDeviceId(),           // deviceId
-                container.getLastUpdate()          // ultimaSync
+                container.getLastUpdate(),          // ultimaSync
+                container.getTemperatureMin(),     // temperatureMin
+                container.getTemperatureMax(),     // temperatureMax
+                container.getHumidityMin(),       // humidityMin
+                container.getHumidityMax()         // humidityMax
         );
     }
 

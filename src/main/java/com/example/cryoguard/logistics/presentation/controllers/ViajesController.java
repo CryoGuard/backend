@@ -39,7 +39,7 @@ public class ViajesController {
             @RequestParam(required = false) String estado,
             @RequestParam(required = false) Integer limit) {
 
-        List<RouteStatus> activeStatuses = List.of(RouteStatus.INITIATED, RouteStatus.IN_PROGRESS);
+        List<RouteStatus> activeStatuses = List.of(RouteStatus.PLANNED, RouteStatus.IN_PROGRESS);
         List<Route> routes;
 
         if ("activo".equalsIgnoreCase(estado)) {
@@ -81,7 +81,9 @@ public class ViajesController {
             operador,
             estado,
             0, // progreso - requires checkpoint completion tracking
-            cajasAsignadas
+            cajasAsignadas,
+            route.getOrigin(),
+            route.getDestination()
         );
     }
 }

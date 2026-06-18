@@ -26,6 +26,10 @@ public class ContainerResource {
     private String productType;     // productType -> Vue: productType
     private String deviceId;        // hardware device ID -> Vue: dispositivoId
     private LocalDateTime ultimaSync; // lastUpdate -> Vue: ultimaSync
+    private BigDecimal temperatureMin;
+    private BigDecimal temperatureMax;
+    private BigDecimal humidityMin;
+    private BigDecimal humidityMax;
 
     @Data
     @NoArgsConstructor

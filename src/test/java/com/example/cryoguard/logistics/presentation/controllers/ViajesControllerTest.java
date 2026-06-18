@@ -36,17 +36,17 @@ class ViajesControllerTest {
     void shouldReturnActiveTripsWithLimit() {
         // Scenario: GET /api/v1/viajes?estado=activo&limit=3 returns active trips for dashboard
         // GIVEN 5 active routes exist
-        Route r1 = new Route("V-2024-0001", "Viaje 1", RouteStatus.INITIATED,
+        Route r1 = new Route("V-2024-0001", "Viaje 1", RouteStatus.PLANNED,
                 "Quito", "Hospital", BigDecimal.valueOf(25), 30, 8,
                 LocalDateTime.now(), LocalDateTime.now().plusHours(1), 1L);
         Route r2 = new Route("V-2024-0002", "Viaje 2", RouteStatus.IN_PROGRESS,
                 "Guayaquil", "Airport", BigDecimal.valueOf(15), 20, 12,
                 LocalDateTime.now(), LocalDateTime.now().plusHours(1), 2L);
-        Route r3 = new Route("V-2024-0003", "Viaje 3", RouteStatus.INITIATED,
+        Route r3 = new Route("V-2024-0003", "Viaje 3", RouteStatus.PLANNED,
                 "Cuenca", "Terminal", BigDecimal.valueOf(30), 45, 6,
                 LocalDateTime.now(), LocalDateTime.now().plusHours(1), 3L);
 
-        when(routeRepository.findByStatusIn(List.of(RouteStatus.INITIATED, RouteStatus.IN_PROGRESS)))
+        when(routeRepository.findByStatusIn(List.of(RouteStatus.PLANNED, RouteStatus.IN_PROGRESS)))
                 .thenReturn(List.of(r1, r2, r3));
 
         ResponseEntity<List<ViajeResource>> response = controller.getViajes("activo", 3);
@@ -59,14 +59,14 @@ class ViajesControllerTest {
 
     @Test
     void shouldReturnAllActiveTripsWithoutLimit() {
-        Route r1 = new Route("V-2024-0001", "Viaje 1", RouteStatus.INITIATED,
+        Route r1 = new Route("V-2024-0001", "Viaje 1", RouteStatus.PLANNED,
                 "Quito", "Hospital", BigDecimal.valueOf(25), 30, 8,
                 LocalDateTime.now(), LocalDateTime.now().plusHours(1), 1L);
         Route r2 = new Route("V-2024-0002", "Viaje 2", RouteStatus.IN_PROGRESS,
                 "Guayaquil", "Airport", BigDecimal.valueOf(15), 20, 12,
                 LocalDateTime.now(), LocalDateTime.now().plusHours(1), 2L);
 
-        when(routeRepository.findByStatusIn(List.of(RouteStatus.INITIATED, RouteStatus.IN_PROGRESS)))
+        when(routeRepository.findByStatusIn(List.of(RouteStatus.PLANNED, RouteStatus.IN_PROGRESS)))
                 .thenReturn(List.of(r1, r2));
 
         ResponseEntity<List<ViajeResource>> response = controller.getViajes("activo", null);
@@ -78,7 +78,7 @@ class ViajesControllerTest {
 
     @Test
     void shouldReturnEmptyArrayWhenNoActiveRoutes() {
-        when(routeRepository.findByStatusIn(List.of(RouteStatus.INITIATED, RouteStatus.IN_PROGRESS)))
+        when(routeRepository.findByStatusIn(List.of(RouteStatus.PLANNED, RouteStatus.IN_PROGRESS)))
                 .thenReturn(List.of());
 
         ResponseEntity<List<ViajeResource>> response = controller.getViajes("activo", null);

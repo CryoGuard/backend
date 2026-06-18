@@ -36,7 +36,11 @@ class ContainerResourceVueShapeTest {
                 location,           // location
                 "Vacunas",          // productType
                 "DEV-001",          // deviceId
-                lastUpdate          // ultimaSync (lastUpdate)
+                lastUpdate,         // ultimaSync (lastUpdate)
+                new BigDecimal("2.0"),  // temperatureMin
+                new BigDecimal("8.0"),  // temperatureMax
+                new BigDecimal("30"),   // humidityMin
+                new BigDecimal("70")    // humidityMax
         );
 
         // THEN all fields should be correctly set

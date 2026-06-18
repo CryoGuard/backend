@@ -65,4 +65,16 @@ public class Container {
 
     @Column(name = "cooling_active")
     private Boolean coolingActive;
+
+    @Column(name = "temperature_min", precision = 5, scale = 2)
+    private BigDecimal temperatureMin;
+
+    @Column(name = "temperature_max", precision = 5, scale = 2)
+    private BigDecimal temperatureMax;
+
+    @Column(name = "humidity_min", precision = 5, scale = 2)
+    private BigDecimal humidityMin;
+
+    @Column(name = "humidity_max", precision = 5, scale = 2)
+    private BigDecimal humidityMax;
 }

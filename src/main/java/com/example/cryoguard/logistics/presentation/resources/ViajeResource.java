@@ -11,9 +11,11 @@ public record ViajeResource(
     String operador,
     String estado,
     Integer progreso,
-    Integer cajasAsignadas
+    Integer cajasAsignadas,
+    String origin,
+    String destination
 ) {
     public static ViajeResource empty(String codigo) {
-        return new ViajeResource(codigo, null, null, 0, 0);
+        return new ViajeResource(codigo, null, null, 0, 0, null, null);
     }
 }

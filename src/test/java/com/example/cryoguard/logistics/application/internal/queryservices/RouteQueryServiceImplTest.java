@@ -42,7 +42,7 @@ class RouteQueryServiceImplTest {
 
     @Test
     void shouldReturnRouteCodeForValidId() {
-        Route route = new Route("V-2024-0156", "Test Route", RouteStatus.active,
+        Route route = new Route("V-2024-0156", "Test Route", RouteStatus.PLANNED,
                 "Origin", "Destination", BigDecimal.valueOf(100),
                 60, 10, LocalDateTime.now(), LocalDateTime.now().plusHours(1), null);
         when(routeRepository.findById(5L)).thenReturn(Optional.of(route));
@@ -66,7 +66,7 @@ class RouteQueryServiceImplTest {
         // GIVEN operator id=3 has 2 routes with status IN_PROGRESS, 1 route with status INITIATED,
         // and 5 routes with status COMPLETED
         when(routeRepository.countByAuthorizedOperatorIdAndStatusIn(eq(3L), any())).thenReturn(3L);
-        when(routeRepository.countByAuthorizedOperatorIdAndStatus(3L, RouteStatus.completed)).thenReturn(5L);
+        when(routeRepository.countByAuthorizedOperatorIdAndStatus(3L, RouteStatus.COMPLETED)).thenReturn(5L);
 
         RouteStatsDto stats = queryService.getStatsByOperator(3L);
 
@@ -77,7 +77,7 @@ class RouteQueryServiceImplTest {
     @Test
     void shouldReturnZeroCountsWhenOperatorHasNoRoutes() {
         when(routeRepository.countByAuthorizedOperatorIdAndStatusIn(eq(99L), any())).thenReturn(0L);
-        when(routeRepository.countByAuthorizedOperatorIdAndStatus(99L, RouteStatus.completed)).thenReturn(0L);
+        when(routeRepository.countByAuthorizedOperatorIdAndStatus(99L, RouteStatus.COMPLETED)).thenReturn(0L);
 
         RouteStatsDto stats = queryService.getStatsByOperator(99L);
 
@@ -90,7 +90,7 @@ class RouteQueryServiceImplTest {
         // GIVEN operator id=3 has 1 route IN_PROGRESS, 1 route CANCELLED, 1 route COMPLETED
         // CANCELLED should be excluded from both active and completed counts
         when(routeRepository.countByAuthorizedOperatorIdAndStatusIn(eq(3L), any())).thenReturn(1L);
-        when(routeRepository.countByAuthorizedOperatorIdAndStatus(3L, RouteStatus.completed)).thenReturn(1L);
+        when(routeRepository.countByAuthorizedOperatorIdAndStatus(3L, RouteStatus.COMPLETED)).thenReturn(1L);
 
         RouteStatsDto stats = queryService.getStatsByOperator(3L);
 

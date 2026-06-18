@@ -34,9 +34,9 @@ class LogisticsContextFacadeTest {
     @Test
     void shouldReturnActiveAndCompletedCounts() {
         // GIVEN operator 5 has 2 active routes and 3 completed
-        when(routeRepository.countByAuthorizedOperatorIdAndStatusIn(5L, List.of(RouteStatus.INITIATED, RouteStatus.IN_PROGRESS)))
+        when(routeRepository.countByAuthorizedOperatorIdAndStatusIn(5L, List.of(RouteStatus.PLANNED, RouteStatus.IN_PROGRESS)))
                 .thenReturn(2L);
-        when(routeRepository.countByAuthorizedOperatorIdAndStatus(5L, RouteStatus.completed))
+        when(routeRepository.countByAuthorizedOperatorIdAndStatus(5L, RouteStatus.COMPLETED))
                 .thenReturn(3L);
 
         // WHEN calling getStatsByOperator
@@ -50,9 +50,9 @@ class LogisticsContextFacadeTest {
     @Test
     void shouldReturnZeroCountsWhenNoRoutes() {
         // GIVEN operator 99 has no routes
-        when(routeRepository.countByAuthorizedOperatorIdAndStatusIn(99L, List.of(RouteStatus.INITIATED, RouteStatus.IN_PROGRESS)))
+        when(routeRepository.countByAuthorizedOperatorIdAndStatusIn(99L, List.of(RouteStatus.PLANNED, RouteStatus.IN_PROGRESS)))
                 .thenReturn(0L);
-        when(routeRepository.countByAuthorizedOperatorIdAndStatus(99L, RouteStatus.completed))
+        when(routeRepository.countByAuthorizedOperatorIdAndStatus(99L, RouteStatus.COMPLETED))
                 .thenReturn(0L);
 
         // WHEN calling getStatsByOperator
