@@ -41,9 +41,6 @@ public class Route extends AuditableAbstractAggregateRoot<Route> {
     @Column(name = "destination", length = 200)
     private String destination;
 
-    @Column(name = "department", length = 100)
-    private String department;
-
     @Column(name = "distance_km", precision = 10, scale = 2)
     private BigDecimal distanceKm;
 
@@ -138,9 +135,6 @@ public class Route extends AuditableAbstractAggregateRoot<Route> {
 
     public String getDestination() { return destination; }
     public void setDestination(String destination) { this.destination = destination; }
-
-    public String getDepartment() { return department; }
-    public void setDepartment(String department) { this.department = department; }
 
     public BigDecimal getDistanceKm() { return distanceKm; }
     public void setDistanceKm(BigDecimal distanceKm) { this.distanceKm = distanceKm; }
