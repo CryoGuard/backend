@@ -1,5 +1,6 @@
 package com.example.cryoguard.monitoring.application;
 
+import com.example.cryoguard.evaluation.application.EvaluationService;
 import com.example.cryoguard.monitoring.domain.aggregates.Container;
 import com.example.cryoguard.monitoring.domain.commands.CreateContainerCommand;
 import com.example.cryoguard.monitoring.domain.commands.SyncContainerCommand;
@@ -10,6 +11,7 @@ import com.example.cryoguard.monitoring.domain.valueobjects.GpsCoordinates;
 import com.example.cryoguard.monitoring.infrastructure.persistence.ContainerRepository;
 import com.example.cryoguard.monitoring.infrastructure.persistence.TelemetryRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +23,9 @@ public class ContainerCommandServiceImpl implements ContainerCommandService {
 
     private final ContainerRepository containerRepository;
     private final TelemetryRepository telemetryRepository;
+
+    @Autowired
+    private EvaluationService evaluationService;
 
     @Override
     @Transactional
@@ -113,7 +118,24 @@ public class ContainerCommandServiceImpl implements ContainerCommandService {
         container.setCoolingActive(command.getCoolingActive());
 
         containerRepository.save(container);
-        return telemetryRepository.save(reading);
+        TelemetryReading savedReading = telemetryRepository.save(reading);
+
+        // Evaluate telemetry for alert rules
+        EvaluationService.TelemetryReading evalReading = mapToReading(command);
+        evaluationService.evaluateTelemetry(command.getContainerId(), evalReading);
+
+        return savedReading;
+    }
+
+    private EvaluationService.TelemetryReading mapToReading(UpdateContainerTelemetryCommand command) {
+        EvaluationService.TelemetryReading reading = new EvaluationService.TelemetryReading();
+        reading.setContainerId(command.getContainerId());
+        reading.setTemperature(command.getTemperature());
+        reading.setHumidity(command.getHumidity());
+        reading.setVibration(command.getVibration());
+        reading.setDoorOpen(command.getDoorOpen());
+        // doorOpenDurationMinutes not available in command - will be null
+        return reading;
     }
 
     @Override
