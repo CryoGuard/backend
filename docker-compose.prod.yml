@@ -18,6 +18,7 @@ services:
       - SPRING_H2_CONSOLE_PATH=/h2-console
       - AUTHORIZATION_JWT_SECRET=cryoguard-256-bit-secret-key-for-jwt-token-signing-must-be-long-enough
       - AUTHORIZATION_JWT_EXPIRATION_DAYS=7
+      - TZ=America/Lima
     volumes:
       - h2-data:/opt/h2-data
     healthcheck:
