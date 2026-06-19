@@ -25,7 +25,8 @@ public class ContainerResource {
     private GpsLocationDTO location; // GpsCoordinates -> Vue: location
     private String productType;     // productType -> Vue: productType
     private String deviceId;        // hardware device ID -> Vue: dispositivoId
-    private LocalDateTime ultimaSync; // lastUpdate -> Vue: ultimaSync
+    private LocalDateTime lastTelemetryUpdate; // lastUpdate
+    private LocalDateTime lastConfigSync;     // lastConfigSyncAt
     private BigDecimal temperatureMin;
     private BigDecimal temperatureMax;
     private BigDecimal humidityMin;

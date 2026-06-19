@@ -40,7 +40,8 @@ public class ContainerResourceAssembler {
                 locationDTO,                       // location
                 container.getProductType(),        // productType
                 container.getDeviceId(),           // deviceId
-                container.getLastUpdate(),          // ultimaSync
+                container.getLastUpdate(),        // lastTelemetryUpdate
+                container.getLastConfigSyncAt(),    // lastConfigSync
                 container.getTemperatureMin(),     // temperatureMin
                 container.getTemperatureMax(),     // temperatureMax
                 container.getHumidityMin(),       // humidityMin

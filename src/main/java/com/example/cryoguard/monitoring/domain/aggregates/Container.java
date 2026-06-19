@@ -84,6 +84,9 @@ public class Container {
     @Column(name = "last_seen_at")
     private LocalDateTime lastSeenAt;
 
+    @Column(name = "last_config_sync_at")
+    private LocalDateTime lastConfigSyncAt;
+
     // Transient field - not persisted, used to carry plain API key during creation
     @Transient
     private String transientApiKey;

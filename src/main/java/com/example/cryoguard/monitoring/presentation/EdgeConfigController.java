@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.Map;
 
 /**
@@ -63,6 +64,10 @@ public class EdgeConfigController {
                 container.getHumidityMax(),
                 container.getFirmwareVersion()
         );
+
+        // Update config sync timestamp after successful auth validation
+        container.setLastConfigSyncAt(LocalDateTime.now());
+        containerRepository.save(container);
 
         return ResponseEntity.ok(config);
     }
