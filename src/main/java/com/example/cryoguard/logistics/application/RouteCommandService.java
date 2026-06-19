@@ -64,6 +64,7 @@ public class RouteCommandService {
             for (Long containerId : command.containerIds()) {
                 RouteContainerAssignment assignment = new RouteContainerAssignment(savedRoute, containerId);
                 containerAssignmentRepository.save(assignment);
+                savedRoute.addContainerAssignment(assignment);
             }
         }
 
