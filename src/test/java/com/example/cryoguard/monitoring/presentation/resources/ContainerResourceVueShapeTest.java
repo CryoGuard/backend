@@ -40,7 +40,9 @@ class ContainerResourceVueShapeTest {
                 new BigDecimal("2.0"),  // temperatureMin
                 new BigDecimal("8.0"),  // temperatureMax
                 new BigDecimal("30"),   // humidityMin
-                new BigDecimal("70")    // humidityMax
+                new BigDecimal("70"),   // humidityMax
+                lastUpdate,         // lastSeenAt
+                true                // apiKeySet
         );
 
         // THEN all fields should be correctly set

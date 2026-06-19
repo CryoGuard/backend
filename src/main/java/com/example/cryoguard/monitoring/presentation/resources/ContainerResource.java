@@ -30,6 +30,8 @@ public class ContainerResource {
     private BigDecimal temperatureMax;
     private BigDecimal humidityMin;
     private BigDecimal humidityMax;
+    private LocalDateTime lastSeenAt;
+    private Boolean apiKeySet;
 
     @Data
     @NoArgsConstructor

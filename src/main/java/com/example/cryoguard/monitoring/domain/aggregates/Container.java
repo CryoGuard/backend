@@ -77,4 +77,22 @@ public class Container {
 
     @Column(name = "humidity_max", precision = 5, scale = 2)
     private BigDecimal humidityMax;
+
+    @Column(name = "api_key_hash", length = 255)
+    private String apiKeyHash;
+
+    @Column(name = "last_seen_at")
+    private LocalDateTime lastSeenAt;
+
+    // Transient field - not persisted, used to carry plain API key during creation
+    @Transient
+    private String transientApiKey;
+
+    public String getTransientApiKey() {
+        return transientApiKey;
+    }
+
+    public void setTransientApiKey(String transientApiKey) {
+        this.transientApiKey = transientApiKey;
+    }
 }

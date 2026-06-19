@@ -1,11 +1,13 @@
 package com.example.cryoguard.monitoring.application;
 
 import com.example.cryoguard.evaluation.application.EvaluationService;
+import com.example.cryoguard.iam.infrastructure.hashing.bcrypt.BCryptHashingService;
 import com.example.cryoguard.monitoring.domain.aggregates.Container;
 import com.example.cryoguard.monitoring.domain.commands.CreateContainerCommand;
 import com.example.cryoguard.monitoring.domain.commands.SyncContainerCommand;
 import com.example.cryoguard.monitoring.domain.commands.UpdateContainerTelemetryCommand;
 import com.example.cryoguard.monitoring.domain.entities.TelemetryReading;
+import com.example.cryoguard.monitoring.domain.exceptions.ContainerNotFoundException;
 import com.example.cryoguard.monitoring.domain.valueobjects.ContainerStatus;
 import com.example.cryoguard.monitoring.domain.valueobjects.GpsCoordinates;
 import com.example.cryoguard.monitoring.infrastructure.persistence.ContainerRepository;
@@ -15,14 +17,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
 public class ContainerCommandServiceImpl implements ContainerCommandService {
 
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+    private static final char[] API_KEY_ALPHABET =
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_".toCharArray();
+
     private final ContainerRepository containerRepository;
     private final TelemetryRepository telemetryRepository;
+
+    @Autowired
+    private BCryptHashingService hashingService;
 
     @Autowired
     private EvaluationService evaluationService;
@@ -58,7 +68,14 @@ public class ContainerCommandServiceImpl implements ContainerCommandService {
         if (command.getHumidityMax() != null) {
             container.setHumidityMax(command.getHumidityMax());
         }
-        return containerRepository.save(container);
+        // Generate API key and store BCrypt hash
+        String apiKey = generateApiKey();
+        container.setApiKeyHash(hashingService.encode(apiKey));
+        container.setLastSeenAt(null);
+        Container saved = containerRepository.save(container);
+        // Stash plain key on transient field for controller to read
+        saved.setTransientApiKey(apiKey);
+        return saved;
     }
 
     @Override
@@ -162,6 +179,37 @@ public class ContainerCommandServiceImpl implements ContainerCommandService {
         reading.setDoorOpen(command.getDoorOpen());
         // doorOpenDurationMinutes not available in command - will be null
         return reading;
+    }
+
+    @Override
+    @Transactional
+    public Container resetApiKey(Long id) {
+        Container container = containerRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Container not found: " + id));
+        String newApiKey = generateApiKey();
+        container.setApiKeyHash(hashingService.encode(newApiKey));
+        Container saved = containerRepository.save(container);
+        saved.setTransientApiKey(newApiKey);
+        return saved;
+    }
+
+    @Override
+    @Transactional
+    public Container recordHeartbeat(String containerId, LocalDateTime seenAt) {
+        Container container = containerRepository.findByContainerId(containerId)
+                .orElseThrow(() -> new ContainerNotFoundException("Container not found: " + containerId));
+        container.setLastSeenAt(seenAt != null ? seenAt : LocalDateTime.now());
+        return containerRepository.save(container);
+    }
+
+    private String generateApiKey() {
+        StringBuilder sb = new StringBuilder(32);
+        byte[] bytes = new byte[32];
+        SECURE_RANDOM.nextBytes(bytes);
+        for (byte b : bytes) {
+            sb.append(API_KEY_ALPHABET[Math.floorMod(b, API_KEY_ALPHABET.length)]);
+        }
+        return sb.toString();
     }
 
     @Override

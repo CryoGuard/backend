@@ -10,9 +10,11 @@ import com.example.cryoguard.monitoring.domain.commands.UpdateContainerTelemetry
 import com.example.cryoguard.monitoring.domain.entities.TelemetryReading;
 import com.example.cryoguard.monitoring.domain.valueobjects.ContainerStatus;
 import com.example.cryoguard.monitoring.presentation.assemblers.ContainerResourceAssembler;
+import com.example.cryoguard.monitoring.presentation.assemblers.CreateContainerWithKeyResourceAssembler;
 import com.example.cryoguard.monitoring.presentation.assemblers.TelemetryReadingResourceAssembler;
 import com.example.cryoguard.monitoring.presentation.resources.ContainerResource;
 import com.example.cryoguard.monitoring.presentation.resources.CreateContainerResource;
+import com.example.cryoguard.monitoring.presentation.resources.CreateContainerWithKeyResource;
 import com.example.cryoguard.monitoring.presentation.resources.SyncContainerResource;
 import com.example.cryoguard.monitoring.presentation.resources.TelemetryInputResource;
 import com.example.cryoguard.monitoring.presentation.resources.TelemetryReadingResource;
@@ -41,10 +43,11 @@ public class ContainersController {
     private final TelemetryQueryService telemetryQueryService;
     private final ContainerResourceAssembler containerAssembler;
     private final TelemetryReadingResourceAssembler telemetryAssembler;
+    private final CreateContainerWithKeyResourceAssembler createContainerWithKeyAssembler;
 
     @PostMapping
     @Operation(summary = "Create container", description = "Creates a new container for monitoring.")
-    public ResponseEntity<ContainerResource> createContainer(@RequestBody CreateContainerResource resource) {
+    public ResponseEntity<CreateContainerWithKeyResource> createContainer(@RequestBody CreateContainerResource resource) {
         CreateContainerCommand command = new CreateContainerCommand(
                 resource.getContainerId(),
                 resource.getName(),
@@ -59,7 +62,8 @@ public class ContainersController {
                 resource.getLocked()
         );
         Container container = containerCommandService.createContainer(command);
-        return ResponseEntity.status(HttpStatus.CREATED).body(containerAssembler.toResource(container));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(createContainerWithKeyAssembler.toResource(container, container.getTransientApiKey()));
     }
 
     @GetMapping
@@ -164,5 +168,12 @@ public class ContainersController {
         SyncContainerCommand command = new SyncContainerCommand(id, resource.getLatitude(), resource.getLongitude());
         Container container = containerCommandService.syncContainer(command);
         return ResponseEntity.ok(containerAssembler.toResource(container));
+    }
+
+    @PutMapping("/{id}/reset-apiKey")
+    @Operation(summary = "Reset container API key", description = "Generates a new API key for the container. The old key is invalidated.")
+    public ResponseEntity<CreateContainerWithKeyResource> resetApiKey(@PathVariable Long id) {
+        Container container = containerCommandService.resetApiKey(id);
+        return ResponseEntity.ok(createContainerWithKeyAssembler.toResource(container, container.getTransientApiKey()));
     }
 }

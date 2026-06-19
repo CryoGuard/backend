@@ -1,16 +1,17 @@
 package com.example.cryoguard.monitoring.presentation;
 
+import com.example.cryoguard.iam.infrastructure.hashing.bcrypt.BCryptHashingService;
 import com.example.cryoguard.monitoring.application.ContainerCommandService;
+import com.example.cryoguard.monitoring.domain.aggregates.Container;
 import com.example.cryoguard.monitoring.domain.commands.UpdateContainerTelemetryCommand;
 import com.example.cryoguard.monitoring.domain.entities.TelemetryReading;
-import com.example.cryoguard.monitoring.domain.valueobjects.GpsCoordinates;
 import com.example.cryoguard.monitoring.infrastructure.persistence.ContainerRepository;
 import com.example.cryoguard.monitoring.presentation.resources.EdgeTelemetryResource;
-import com.example.cryoguard.monitoring.presentation.resources.TelemetryReadingResource;
 import com.example.cryoguard.monitoring.presentation.assemblers.TelemetryReadingResourceAssembler;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,17 +22,30 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/v1/edge")
 @RequiredArgsConstructor
+@Slf4j
 @Tag(name = "Edge", description = "Edge device telemetry ingestion")
 public class EdgeIngestController {
 
     private final ContainerRepository containerRepository;
     private final ContainerCommandService containerCommandService;
     private final TelemetryReadingResourceAssembler telemetryAssembler;
+    private final BCryptHashingService hashingService;
+
+    @ExceptionHandler(EdgeAuthException.class)
+    public ResponseEntity<?> handleEdgeAuthException(EdgeAuthException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(Map.of("error", ex.getMessage()));
+    }
 
     @PostMapping("/ingest")
     @Operation(summary = "Ingest telemetry from edge device",
                description = "Receives telemetry from edge gateway, forwards to container telemetry endpoint.")
-    public ResponseEntity<?> ingestTelemetry(@RequestBody EdgeTelemetryResource resource) {
+    public ResponseEntity<?> ingestTelemetry(@RequestBody EdgeTelemetryResource resource,
+                                             @RequestHeader("X-Edge-Id") String edgeIdHeader,
+                                             @RequestHeader("X-Edge-Api-Key") String apiKeyHeader) {
+        // Validate edge authentication before any processing
+        validateEdgeAuth(resource.getContainerId(), edgeIdHeader, apiKeyHeader);
+
         // Look up container by business containerId
         return containerRepository.findByContainerId(resource.getContainerId())
                 .map(container -> {
@@ -54,5 +68,24 @@ public class EdgeIngestController {
                 })
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
                         .body(Map.of("error", "Container not found", "containerId", resource.getContainerId())));
+    }
+
+    private void validateEdgeAuth(String bodyContainerId, String edgeIdHeader, String apiKeyHeader) {
+        if (edgeIdHeader == null || edgeIdHeader.isBlank()) {
+            throw new EdgeAuthException("X-Edge-Id header missing");
+        }
+        if (apiKeyHeader == null || apiKeyHeader.isBlank()) {
+            throw new EdgeAuthException("X-Edge-Api-Key header missing");
+        }
+        if (!edgeIdHeader.equals(bodyContainerId)) {
+            log.warn("Edge auth header mismatch: edgeId={} body={}", edgeIdHeader, bodyContainerId);
+            throw new EdgeAuthException("Edge identity mismatch");
+        }
+        Container container = containerRepository.findByContainerId(edgeIdHeader)
+                .orElseThrow(() -> new EdgeAuthException("Container not found for edgeId"));
+        if (container.getApiKeyHash() == null || !hashingService.matches(apiKeyHeader, container.getApiKeyHash())) {
+            log.warn("Edge auth failed: edgeId={}", edgeIdHeader);
+            throw new EdgeAuthException("Invalid X-Edge-Api-Key");
+        }
     }
 }
