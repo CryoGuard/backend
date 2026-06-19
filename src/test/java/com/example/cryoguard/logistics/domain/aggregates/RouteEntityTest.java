@@ -15,7 +15,7 @@ class RouteEntityTest {
 
     @Test
     void shouldHaveAuthorizedOperatorIdField() {
-        Route route = new Route("R001", "Test Route", RouteStatus.PLANNED,
+        Route route = new Route("R001", "Test Route", RouteStatus.active,
                 "Origin", "Destination", BigDecimal.valueOf(100),
                 60, 10, LocalDateTime.now(), LocalDateTime.now().plusHours(1), 5L);
 
@@ -34,7 +34,7 @@ class RouteEntityTest {
 
     @Test
     void shouldAddContainerAssignmentToRoute() {
-        Route route = new Route("R003", "Test Route 3", RouteStatus.PLANNED,
+        Route route = new Route("R003", "Test Route 3", RouteStatus.active,
                 "Origin", "Destination", BigDecimal.valueOf(150),
                 45, 5, LocalDateTime.now(), LocalDateTime.now().plusHours(1), 2L);
 
@@ -47,7 +47,7 @@ class RouteEntityTest {
 
     @Test
     void shouldAllowNullAuthorizedOperatorId() {
-        Route route = new Route("R004", "Test Route 4", RouteStatus.PLANNED,
+        Route route = new Route("R004", "Test Route 4", RouteStatus.active,
                 "Origin", "Destination", BigDecimal.valueOf(100),
                 60, 10, LocalDateTime.now(), LocalDateTime.now().plusHours(1), null);
 
@@ -56,21 +56,21 @@ class RouteEntityTest {
 
     @Test
     void shouldUseNewConstructorWithoutContainerId() {
-        Route route = new Route("R005", "Viaje Quito", RouteStatus.PLANNED,
+        Route route = new Route("R005", "Viaje Quito", RouteStatus.active,
                 "Quito", "Hospital", BigDecimal.valueOf(25.5),
                 30, 8, LocalDateTime.now(), LocalDateTime.now().plusHours(1), 7L);
 
         assertEquals("R005", route.getRouteId());
         assertEquals("Viaje Quito", route.getName());
         assertEquals(7L, route.getAuthorizedOperatorId());
-        assertEquals(RouteStatus.PLANNED, route.getStatus());
+        assertEquals(RouteStatus.active, route.getStatus());
     }
 
     @Test
     void shouldHaveProgressField() {
         // progreso is computed from checkpoints, not stored directly
         // But checkpoints field exists
-        Route route = new Route("R006", "Test Route", RouteStatus.PLANNED,
+        Route route = new Route("R006", "Test Route", RouteStatus.active,
                 "Origin", "Destination", BigDecimal.valueOf(100),
                 60, 10, LocalDateTime.now(), LocalDateTime.now().plusHours(1), 1L);
 
@@ -80,7 +80,7 @@ class RouteEntityTest {
     @Test
     void shouldMaintainContainerIdForBackwardCompatibility() {
         // Backward compatibility: containerId is stored but @Transient (not persisted)
-        Route route = new Route("R007", "Test Route", 1L, RouteStatus.PLANNED,
+        Route route = new Route("R007", "Test Route", 1L, RouteStatus.active,
                 "Origin", "Destination", BigDecimal.valueOf(100),
                 60, 10, LocalDateTime.now(), LocalDateTime.now().plusHours(1));
 
@@ -89,7 +89,7 @@ class RouteEntityTest {
 
     @Test
     void shouldUpdateAuthorizedOperatorId() {
-        Route route = new Route("R008", "Test Route", RouteStatus.PLANNED,
+        Route route = new Route("R008", "Test Route", RouteStatus.active,
                 "Origin", "Destination", BigDecimal.valueOf(100),
                 60, 10, LocalDateTime.now(), LocalDateTime.now().plusHours(1), null);
 

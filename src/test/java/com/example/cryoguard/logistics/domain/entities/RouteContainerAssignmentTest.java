@@ -13,7 +13,7 @@ class RouteContainerAssignmentTest {
 
     @Test
     void shouldCreateAssignmentWithRouteAndContainerId() {
-        Route route = new Route("R001", "Test Route", 1L, RouteStatus.PLANNED,
+        Route route = new Route("R001", "Test Route", 1L, RouteStatus.active,
                 "Origin", "Destination", BigDecimal.valueOf(100),
                 60, 10, LocalDateTime.now(), LocalDateTime.now().plusHours(1));
 
@@ -25,7 +25,7 @@ class RouteContainerAssignmentTest {
 
     @Test
     void shouldHaveAssignedAtTimestamp() {
-        Route route = new Route("R002", "Test Route 2", 2L, RouteStatus.PLANNED,
+        Route route = new Route("R002", "Test Route 2", 2L, RouteStatus.active,
                 "Origin", "Destination", BigDecimal.valueOf(100),
                 60, 10, LocalDateTime.now(), LocalDateTime.now().plusHours(1));
 

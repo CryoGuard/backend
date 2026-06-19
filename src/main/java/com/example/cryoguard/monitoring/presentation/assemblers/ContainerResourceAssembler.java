@@ -21,7 +21,7 @@ public class ContainerResourceAssembler {
             locationDTO = new ContainerResource.GpsLocationDTO(loc.getLatitude(), loc.getLongitude());
         }
 
-        boolean connected = isConnected(container.getLastUpdate(), container.getLastSeenAt());
+        boolean connected = isConnected(container.getLastSeenAt());
 
         boolean apiKeySet = container.getApiKeyHash() != null && !container.getApiKeyHash().isBlank();
 
@@ -61,18 +61,13 @@ public class ContainerResourceAssembler {
 
     /**
      * Determines if a container is "connected" based on last heartbeat.
-     * Uses lastSeenAt (when available) with 2-minute threshold.
-     * Falls back to lastUpdate (5-minute threshold) for legacy containers without lastSeenAt.
+     * Uses lastSeenAt with 2-minute threshold. Returns false if no heartbeat received.
      */
-    public boolean isConnected(LocalDateTime lastUpdate, LocalDateTime lastSeenAt) {
-        if (lastSeenAt != null) {
-            long minutesSinceSeen = Duration.between(lastSeenAt, LocalDateTime.now()).toMinutes();
-            return minutesSinceSeen < 2;
-        }
-        if (lastUpdate == null) {
+    public boolean isConnected(LocalDateTime lastSeenAt) {
+        if (lastSeenAt == null) {
             return false;
         }
-        long minutesSinceUpdate = Duration.between(lastUpdate, LocalDateTime.now()).toMinutes();
-        return minutesSinceUpdate < CONNECTED_THRESHOLD_MINUTES;
+        long minutesSinceSeen = Duration.between(lastSeenAt, LocalDateTime.now()).toMinutes();
+        return minutesSinceSeen < 2;
     }
 }

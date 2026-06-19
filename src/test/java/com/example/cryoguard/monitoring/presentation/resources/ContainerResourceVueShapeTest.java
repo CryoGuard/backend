@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Tests for ContainerResource Vue shape with Spanish field names and new fields.
+ * Tests for ContainerResource Vue shape with English field names and new timestamp fields.
  * T3.6 - Update ContainerResource to Vue shape
  */
 class ContainerResourceVueShapeTest {
@@ -36,7 +36,8 @@ class ContainerResourceVueShapeTest {
                 location,           // location
                 "Vacunas",          // productType
                 "DEV-001",          // deviceId
-                lastUpdate,         // ultimaSync (lastUpdate)
+                lastUpdate,         // lastTelemetryUpdate
+                null,               // lastConfigSync
                 new BigDecimal("2.0"),  // temperatureMin
                 new BigDecimal("8.0"),  // temperatureMax
                 new BigDecimal("30"),   // humidityMin
@@ -60,7 +61,7 @@ class ContainerResourceVueShapeTest {
         assertEquals(new BigDecimal("-12.0464"), resource.getLocation().getLat());
         assertEquals(new BigDecimal("-77.0428"), resource.getLocation().getLng());
         assertEquals("Vacunas", resource.getProductType());
-        assertEquals(lastUpdate, resource.getUltimaSync());
+        assertEquals(lastUpdate, resource.getLastTelemetryUpdate());
     }
 
     @Test
