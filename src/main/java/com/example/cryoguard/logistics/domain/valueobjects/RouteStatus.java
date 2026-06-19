@@ -3,10 +3,11 @@ package com.example.cryoguard.logistics.domain.valueobjects;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum RouteStatus {
-    PLANNED("planned"),
-    IN_PROGRESS("in_progress"),
-    COMPLETED("completed"),
-    CANCELLED("cancelled");
+    active("active"),
+    completed("completed"),
+    cancelled("cancelled"),
+    INITIATED("iniciado"),
+    IN_PROGRESS("en_ruta");
 
     private final String value;
 

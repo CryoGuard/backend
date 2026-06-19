@@ -46,7 +46,7 @@ public class RouteCommandService {
         Route route = new Route(
             routeId,
             command.name(),
-            RouteStatus.PLANNED,
+            RouteStatus.INITIATED,
             command.origin(),
             command.destination(),
             command.distanceKm(),
@@ -73,7 +73,7 @@ public class RouteCommandService {
     public Route updateRoute(Long id, UpdateRouteCommand command) {
         Route route = routeRepository.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("Route not found: " + id));
-        if (route.getStatus() == RouteStatus.COMPLETED || route.getStatus() == RouteStatus.CANCELLED) {
+        if (route.getStatus() == RouteStatus.completed || route.getStatus() == RouteStatus.cancelled) {
             throw new IllegalStateException("Cannot update a completed or cancelled route");
         }
         route.setName(command.name());
@@ -90,7 +90,7 @@ public class RouteCommandService {
     public Route completeRoute(Long id, CompleteRouteCommand command) {
         Route route = routeRepository.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("Route not found: " + id));
-        if (route.getStatus() != RouteStatus.PLANNED && route.getStatus() != RouteStatus.IN_PROGRESS) {
+        if (route.getStatus() != RouteStatus.INITIATED && route.getStatus() != RouteStatus.IN_PROGRESS) {
             throw new IllegalStateException("Only planned or in-progress routes can be completed");
         }
         route.complete();
@@ -100,7 +100,7 @@ public class RouteCommandService {
     public void startRoute(Long routeId) {
         Route route = routeRepository.findById(routeId)
             .orElseThrow(() -> new IllegalArgumentException("Route not found: " + routeId));
-        if (route.getStatus() != RouteStatus.PLANNED) {
+        if (route.getStatus() != RouteStatus.INITIATED) {
             throw new IllegalStateException("Can only start a planned route");
         }
         route.setStatus(RouteStatus.IN_PROGRESS);
@@ -111,10 +111,10 @@ public class RouteCommandService {
     public void cancelRoute(Long routeId) {
         Route route = routeRepository.findById(routeId)
             .orElseThrow(() -> new IllegalArgumentException("Route not found: " + routeId));
-        if (route.getStatus() == RouteStatus.COMPLETED || route.getStatus() == RouteStatus.CANCELLED) {
+        if (route.getStatus() == RouteStatus.completed || route.getStatus() == RouteStatus.cancelled) {
             throw new IllegalStateException("Cannot cancel a completed or already cancelled route");
         }
-        route.setStatus(RouteStatus.CANCELLED);
+        route.setStatus(RouteStatus.cancelled);
         routeRepository.save(route);
     }
 

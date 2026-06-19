@@ -93,10 +93,11 @@ public class RouteAssemblerImpl {
     public String mapStatusToSpanish(RouteStatus status) {
         if (status == null) return null;
         return switch (status) {
-            case PLANNED -> "planificado";
+            case INITIATED -> "iniciado";
             case IN_PROGRESS -> "en_ruta";
-            case COMPLETED -> "completado";
-            case CANCELLED -> "cancelado";
+            case active -> "active";
+            case completed -> "completado";
+            case cancelled -> "cancelado";
         };
     }
 

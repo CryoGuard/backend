@@ -40,9 +40,9 @@ public class RouteQueryServiceImpl implements RouteQueryService {
 
     @Override
     public RouteStatsDto getStatsByOperator(Long operatorId) {
-        List<RouteStatus> activeStatuses = List.of(RouteStatus.PLANNED, RouteStatus.IN_PROGRESS);
+        List<RouteStatus> activeStatuses = List.of(RouteStatus.INITIATED, RouteStatus.IN_PROGRESS);
         long activeCount = routeRepository.countByAuthorizedOperatorIdAndStatusIn(operatorId, activeStatuses);
-        long completedCount = routeRepository.countByAuthorizedOperatorIdAndStatus(operatorId, RouteStatus.COMPLETED);
+        long completedCount = routeRepository.countByAuthorizedOperatorIdAndStatus(operatorId, RouteStatus.completed);
         return new RouteStatsDto((int) activeCount, (int) completedCount);
     }
 
@@ -52,7 +52,7 @@ public class RouteQueryServiceImpl implements RouteQueryService {
         // Then find active routes via RouteContainerAssignment
         return containerRepository.findByContainerId(containerCode)
                 .map(container -> {
-                    List<RouteStatus> activeStatuses = List.of(RouteStatus.PLANNED, RouteStatus.IN_PROGRESS);
+                    List<RouteStatus> activeStatuses = List.of(RouteStatus.INITIATED, RouteStatus.IN_PROGRESS);
                     List<Route> activeRoutes = routeRepository.findActiveRoutesByContainerId(container.getId(), activeStatuses);
                     if (activeRoutes.isEmpty()) {
                         return null;

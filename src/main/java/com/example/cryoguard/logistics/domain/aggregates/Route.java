@@ -185,7 +185,7 @@ public class Route extends AuditableAbstractAggregateRoot<Route> {
     }
 
     public void complete() {
-        this.status = RouteStatus.COMPLETED;
+        this.status = RouteStatus.completed;
         this.endTime = LocalDateTime.now();
     }
 }

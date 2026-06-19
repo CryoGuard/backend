@@ -27,9 +27,9 @@ public class LogisticsContextFacade implements LogisticsQueryService {
     @Override
     public RouteStatsDto getStatsByOperator(Long operatorId) {
         long activeCount = routeRepository.countByAuthorizedOperatorIdAndStatusIn(
-                operatorId, List.of(RouteStatus.PLANNED, RouteStatus.IN_PROGRESS));
+                operatorId, List.of(RouteStatus.INITIATED, RouteStatus.IN_PROGRESS));
         long completedCount = routeRepository.countByAuthorizedOperatorIdAndStatus(
-                operatorId, RouteStatus.COMPLETED);
+                operatorId, RouteStatus.completed);
         return new RouteStatsDto((int) activeCount, (int) completedCount);
     }
 }
