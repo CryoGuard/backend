@@ -3,6 +3,7 @@ package com.example.cryoguard.iam.interfaces.rest;
 import com.example.cryoguard.iam.application.internal.commandservices.UserCommandServiceImpl;
 import com.example.cryoguard.iam.domain.services.UserCommandService;
 import com.example.cryoguard.iam.interfaces.rest.resources.LoginResponseResource;
+import com.example.cryoguard.iam.interfaces.rest.resources.SignInPinResource;
 import com.example.cryoguard.iam.interfaces.rest.resources.SignInResource;
 import com.example.cryoguard.iam.interfaces.rest.resources.SignUpResource;
 import com.example.cryoguard.iam.interfaces.rest.resources.UserResource;
@@ -14,6 +15,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -61,6 +63,50 @@ public class AuthenticationController {
         try {
             var signInCommand = SignInCommandFromResourceAssembler.toCommandFromResource(signInResource);
             var result = userCommandService.handle(signInCommand);
+            if (result.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
+            var user = result.get().getLeft();
+            var token = result.get().getRight();
+
+            // Get trip stats from logistics (or fallback to zero)
+            RouteStatsDto stats = RouteStatsDto.zero();
+            if (logisticsQueryService != null) {
+                try {
+                    stats = logisticsQueryService.getStatsByOperator(user.getId());
+                } catch (Exception e) {
+                    // Fallback to zero if logistics is unavailable
+                }
+            }
+
+            // Build UserResource with computed fields using the assembler
+            UserResource userResource = UserResourceFromEntityAssembler.toResourceFromEntity(user, stats);
+
+            var loginResponse = new LoginResponseResource(token, userResource);
+            return ResponseEntity.ok(loginResponse);
+        } catch (UserCommandServiceImpl.LockedUserException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+    }
+
+    /**
+     * Handles the login with PIN request (POST /auth/login-pin).
+     * @param resource the sign-in request body with 4-digit PIN.
+     * @return the login response with JWT token and user info.
+     */
+    @PostMapping(value = "/login-pin", consumes = {"application/json"})
+    @Operation(summary = "Login with operator PIN",
+               description = "Authenticate using a 4-digit operator PIN (no email). Returns JWT if PIN matches any operator's stored password hash.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Login successful."),
+        @ApiResponse(responseCode = "401", description = "Invalid PIN."),
+        @ApiResponse(responseCode = "403", description = "Account locked.")})
+    public ResponseEntity<LoginResponseResource> loginPin(@Valid @RequestBody SignInPinResource resource) {
+        try {
+            var command = new com.example.cryoguard.iam.domain.model.commands.SignInPinCommand(resource.pin());
+            var result = userCommandService.handle(command);
             if (result.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
             }
