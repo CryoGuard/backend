@@ -7,7 +7,8 @@ public enum AlertType {
     HUMIDITY("humidity"),
     VIBRATION("vibration"),
     DOOR("door"),
-    GEOFENCE("geofence");
+    GEOFENCE("geofence"),
+    BATTERY("battery");   // NEW — added for edge local alert forwarding
 
     private final String value;
 
