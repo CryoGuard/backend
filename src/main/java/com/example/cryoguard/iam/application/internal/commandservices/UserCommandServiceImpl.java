@@ -4,6 +4,7 @@ import com.example.cryoguard.iam.application.internal.outboundservices.hashing.H
 import com.example.cryoguard.iam.application.internal.outboundservices.tokens.TokenService;
 import com.example.cryoguard.iam.domain.model.aggregates.User;
 import com.example.cryoguard.iam.domain.model.commands.SignInCommand;
+import com.example.cryoguard.iam.domain.model.commands.SignInPinCommand;
 import com.example.cryoguard.iam.domain.model.commands.SignUpCommand;
 import com.example.cryoguard.iam.domain.model.commands.UpdateUserCommand;
 import com.example.cryoguard.iam.domain.model.commands.DisableUserCommand;
@@ -64,6 +65,38 @@ public class UserCommandServiceImpl implements UserCommandService {
 
         var token = tokenService.generateToken(user.get().getUsername());
         return Optional.of(ImmutablePair.of(user.get(), token));
+    }
+
+    /**
+     * Handle the sign-in with PIN command
+     * <p>
+     *     Iterates all users to find one whose password hash matches the provided PIN.
+     *     Only OPERATOR role users are considered.
+     * </p>
+     * @param command the sign-in PIN command containing the 4-digit PIN
+     * @return an optional containing the user and generated token if PIN matches
+     */
+    @Override
+    public Optional<ImmutablePair<User, String>> handle(SignInPinCommand command) {
+        var allUsers = userRepository.findAll();
+        for (var user : allUsers) {
+            // Check if user has OPERATOR role
+            boolean isOperator = user.getRoles().stream()
+                .anyMatch(role -> role.getName().equals(com.example.cryoguard.iam.domain.model.valueobjects.Roles.ROLE_OPERATOR));
+            if (!isOperator) {
+                continue;
+            }
+            if (hashingService.matches(command.pin(), user.getPassword())) {
+                if (user.isLocked()) {
+                    throw new LockedUserException("User account is locked");
+                }
+                user.recordLogin();
+                userRepository.save(user);
+                var token = tokenService.generateToken(user.getUsername());
+                return Optional.of(ImmutablePair.of(user, token));
+            }
+        }
+        return Optional.empty();
     }
 
     /**
@@ -136,8 +169,8 @@ public class UserCommandServiceImpl implements UserCommandService {
             user.setTelefono(command.telefono());
         }
 
-        userRepository.save(user);
-        return Optional.of(user);
+        User savedUser = userRepository.save(user);
+        return Optional.of(savedUser);
     }
 
     /**
