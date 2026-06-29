@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
@@ -88,5 +89,20 @@ public class AlertQueryServiceImpl implements AlertQueryService {
         } else {
             return "activa";
         }
+    }
+
+    @Override
+    public List<Alert> getAlertsSince(LocalDateTime since, String severity, String status) {
+        return alertRepository.findByTimestampAfterWithFilters(since, severity, status);
+    }
+
+    @Override
+    public List<Alert> getAlertsBetween(LocalDateTime since, LocalDateTime until, String severity, String status) {
+        return alertRepository.findByTimestampRangeWithFilters(since, until, severity, status);
+    }
+
+    @Override
+    public long countActiveAlerts() {
+        return alertRepository.countByResolvedFalse();
     }
 }

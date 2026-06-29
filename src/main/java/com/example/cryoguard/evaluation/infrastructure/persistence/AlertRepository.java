@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -63,4 +64,41 @@ public interface AlertRepository extends JpaRepository<Alert, Long> {
 
     // T2 - Cross-BC: find active alerts (not resolved) for given container IDs
     List<Alert> findByContainerIdInAndResolvedFalse(List<Long> containerIds);
+
+    // B1: Polling endpoint - alerts since timestamp, ordered ASC (for streaming)
+    List<Alert> findByTimestampAfterOrderByTimestampAsc(LocalDateTime timestamp);
+
+    // B1: Polling endpoint - alerts between timestamps, ordered ASC
+    List<Alert> findByTimestampAfterAndTimestampBeforeOrderByTimestampAsc(
+        LocalDateTime since, LocalDateTime until);
+
+    // B1: Combined filters with timestamp range - alerts since timestamp with severity/status filters
+    @Query("SELECT a FROM Alert a WHERE " +
+           "a.timestamp > :since AND " +
+           "(:severity IS NULL OR LOWER(CAST(a.severity AS string)) = LOWER(:severity)) AND " +
+           "(:status IS NULL OR " +
+           "  (:status = 'activa' AND a.acknowledged = false AND a.resolved = false) OR " +
+           "  (:status = 'pendiente' AND a.acknowledged = true AND a.resolved = false) OR " +
+           "  (:status = 'confirmada' AND a.resolved = true))")
+    List<Alert> findByTimestampAfterWithFilters(
+        @Param("since") LocalDateTime since,
+        @Param("severity") String severity,
+        @Param("status") String status);
+
+    // B1: Combined filters with timestamp range - alerts between timestamps with severity/status filters
+    @Query("SELECT a FROM Alert a WHERE " +
+           "a.timestamp > :since AND a.timestamp < :until AND " +
+           "(:severity IS NULL OR LOWER(CAST(a.severity AS string)) = LOWER(:severity)) AND " +
+           "(:status IS NULL OR " +
+           "  (:status = 'activa' AND a.acknowledged = false AND a.resolved = false) OR " +
+           "  (:status = 'pendiente' AND a.acknowledged = true AND a.resolved = false) OR " +
+           "  (:status = 'confirmada' AND a.resolved = true))")
+    List<Alert> findByTimestampRangeWithFilters(
+        @Param("since") LocalDateTime since,
+        @Param("until") LocalDateTime until,
+        @Param("severity") String severity,
+        @Param("status") String status);
+
+    // B2: Count active alerts for dashboard badge
+    long countByResolvedFalse();
 }

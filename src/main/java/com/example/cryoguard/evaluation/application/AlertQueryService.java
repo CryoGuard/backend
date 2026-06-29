@@ -4,6 +4,7 @@ import com.example.cryoguard.evaluation.domain.entities.Alert;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -51,4 +52,13 @@ public interface AlertQueryService {
         String message,
         String timestamp
     ) {}
+
+    // B1: Get alerts since timestamp (no pagination, ordered ASC)
+    List<Alert> getAlertsSince(LocalDateTime since, String severity, String status);
+
+    // B1: Get alerts between timestamps (no pagination, ordered ASC)
+    List<Alert> getAlertsBetween(LocalDateTime since, LocalDateTime until, String severity, String status);
+
+    // B2: Count active (unresolved) alerts
+    long countActiveAlerts();
 }
