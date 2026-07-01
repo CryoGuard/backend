@@ -1,6 +1,7 @@
 package com.example.cryoguard.iam.interfaces.rest;
 
 import com.example.cryoguard.iam.domain.model.aggregates.User;
+import com.example.cryoguard.iam.domain.model.commands.CreateOperatorCommand;
 import com.example.cryoguard.iam.domain.model.commands.ResetUserPinCommand;
 import com.example.cryoguard.iam.domain.model.commands.SignUpCommand;
 import com.example.cryoguard.iam.domain.model.commands.UpdateUserCommand;
@@ -9,6 +10,9 @@ import com.example.cryoguard.iam.domain.model.queries.GetUserByIdQuery;
 import com.example.cryoguard.iam.domain.services.ResetUserPinCommandService;
 import com.example.cryoguard.iam.domain.services.UserCommandService;
 import com.example.cryoguard.iam.domain.services.UserQueryService;
+import com.example.cryoguard.iam.interfaces.acl.LogisticsQueryService;
+import com.example.cryoguard.iam.interfaces.rest.resources.CreateOperatorResource;
+import com.example.cryoguard.iam.interfaces.rest.resources.CreateOperatorResponseResource;
 import com.example.cryoguard.iam.interfaces.rest.resources.ResetPinResponseResource;
 import com.example.cryoguard.iam.interfaces.rest.resources.SignUpResource;
 import com.example.cryoguard.iam.interfaces.rest.resources.UpdateUserResource;
@@ -16,10 +20,12 @@ import com.example.cryoguard.iam.interfaces.rest.resources.UserResource;
 import com.example.cryoguard.iam.interfaces.rest.transform.SignUpCommandFromResourceAssembler;
 import com.example.cryoguard.iam.interfaces.rest.transform.UpdateUserCommandFromResourceAssembler;
 import com.example.cryoguard.iam.interfaces.rest.transform.UserResourceFromEntityAssembler;
+import com.example.cryoguard.logistics.interfaces.acl.RouteStatsDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -44,11 +50,13 @@ public class UsersController {
     private final UserCommandService userCommandService;
     private final UserQueryService userQueryService;
     private final ResetUserPinCommandService resetUserPinCommandService;
+    private final LogisticsQueryService logisticsQueryService;
 
-    public UsersController(UserCommandService userCommandService, UserQueryService userQueryService, ResetUserPinCommandService resetUserPinCommandService) {
+    public UsersController(UserCommandService userCommandService, UserQueryService userQueryService, ResetUserPinCommandService resetUserPinCommandService, LogisticsQueryService logisticsQueryService) {
         this.userCommandService = userCommandService;
         this.userQueryService = userQueryService;
         this.resetUserPinCommandService = resetUserPinCommandService;
+        this.logisticsQueryService = logisticsQueryService;
     }
 
     /**
@@ -117,6 +125,34 @@ public class UsersController {
         }
         var userResource = UserResourceFromEntityAssembler.toResourceFromEntity(user.get());
         return new ResponseEntity<>(userResource, HttpStatus.CREATED);
+    }
+
+    /**
+     * Create a new operator with auto-generated PIN (POST /users/operators)
+     * @param resource the operator creation request
+     * @return the created user resource and the auto-generated PIN
+     */
+    @PostMapping(value = "/operators", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "Create operator with auto-generated PIN",
+            description = "Creates a new operator (role=OPERATOR) and returns a unique 4-digit PIN. The PIN is shown to the admin and must be shared with the operator for mobile login.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Operator created successfully."),
+            @ApiResponse(responseCode = "400", description = "Bad request."),
+            @ApiResponse(responseCode = "401", description = "Unauthorized.")})
+    public ResponseEntity<CreateOperatorResponseResource> createOperator(@Valid @RequestBody CreateOperatorResource resource) {
+        var command = new CreateOperatorCommand(resource.username(), resource.email(), resource.telefono());
+        var result = userCommandService.handle(command);
+        if (result.isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+        var user = result.get().getLeft();
+        var pin = result.get().getRight();
+        RouteStatsDto stats = RouteStatsDto.zero();
+        try {
+            stats = logisticsQueryService.getStatsByOperator(user.getId());
+        } catch (Exception ignored) {}
+        UserResource userResource = UserResourceFromEntityAssembler.toResourceFromEntity(user, stats);
+        return new ResponseEntity<>(new CreateOperatorResponseResource(userResource, pin), HttpStatus.CREATED);
     }
 
     /**

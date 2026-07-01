@@ -1,6 +1,7 @@
 package com.example.cryoguard.iam.domain.services;
 
 import com.example.cryoguard.iam.domain.model.aggregates.User;
+import com.example.cryoguard.iam.domain.model.commands.CreateOperatorCommand;
 import com.example.cryoguard.iam.domain.model.commands.SignInCommand;
 import com.example.cryoguard.iam.domain.model.commands.SignInPinCommand;
 import com.example.cryoguard.iam.domain.model.commands.SignUpCommand;
@@ -37,6 +38,13 @@ public interface UserCommandService {
      * @return an {@link Optional} of {@link User} entity
      */
     Optional<User> handle(SignUpCommand command);
+
+    /**
+     * Handle create operator command with auto-generated PIN.
+     * @param command the {@link CreateOperatorCommand} command
+     * @return an {@link Optional} of {@link ImmutablePair} of {@link User} and the plain PIN
+     */
+    Optional<ImmutablePair<User, String>> handle(CreateOperatorCommand command);
 
     /**
      * Handle update user command

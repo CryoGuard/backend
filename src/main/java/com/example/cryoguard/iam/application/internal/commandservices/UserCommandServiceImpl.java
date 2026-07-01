@@ -2,12 +2,15 @@ package com.example.cryoguard.iam.application.internal.commandservices;
 
 import com.example.cryoguard.iam.application.internal.outboundservices.hashing.HashingService;
 import com.example.cryoguard.iam.application.internal.outboundservices.tokens.TokenService;
+import com.example.cryoguard.iam.application.internal.services.PinGenerator;
 import com.example.cryoguard.iam.domain.model.aggregates.User;
+import com.example.cryoguard.iam.domain.model.commands.CreateOperatorCommand;
 import com.example.cryoguard.iam.domain.model.commands.SignInCommand;
 import com.example.cryoguard.iam.domain.model.commands.SignInPinCommand;
 import com.example.cryoguard.iam.domain.model.commands.SignUpCommand;
 import com.example.cryoguard.iam.domain.model.commands.UpdateUserCommand;
 import com.example.cryoguard.iam.domain.model.commands.DisableUserCommand;
+import com.example.cryoguard.iam.domain.model.valueobjects.Roles;
 import com.example.cryoguard.iam.domain.services.UserCommandService;
 import com.example.cryoguard.iam.infrastructure.persistence.jpa.repositories.RoleRepository;
 import com.example.cryoguard.iam.infrastructure.persistence.jpa.repositories.UserRepository;
@@ -16,6 +19,7 @@ import com.example.cryoguard.shared.domain.exceptions.InvalidCredentialsExceptio
 import com.example.cryoguard.shared.domain.exceptions.UserNotFoundException;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -34,12 +38,14 @@ public class UserCommandServiceImpl implements UserCommandService {
     private final HashingService hashingService;
     private final TokenService tokenService;
     private final RoleRepository roleRepository;
+    private final PinGenerator pinGenerator;
 
-    public UserCommandServiceImpl(UserRepository userRepository, HashingService hashingService, TokenService tokenService, RoleRepository roleRepository) {
+    public UserCommandServiceImpl(UserRepository userRepository, HashingService hashingService, TokenService tokenService, RoleRepository roleRepository, PinGenerator pinGenerator) {
         this.userRepository = userRepository;
         this.hashingService = hashingService;
         this.tokenService = tokenService;
         this.roleRepository = roleRepository;
+        this.pinGenerator = pinGenerator;
     }
 
     /**
@@ -131,6 +137,40 @@ public class UserCommandServiceImpl implements UserCommandService {
         user.setTelefono(command.telefono());
         userRepository.save(user);
         return userRepository.findByUsername(command.username());
+    }
+
+    /**
+     * Handle the create operator command with auto-generated PIN.
+     * <p>
+     *     This method handles the {@link CreateOperatorCommand} command and returns the created user
+     *     along with the auto-generated 4-digit PIN.
+     * </p>
+     * @param command the create operator command containing username, email, and telefono
+     * @return an {@link Optional} of {@link ImmutablePair} of {@link User} and the plain PIN
+     */
+    @Override
+    @Transactional
+    public Optional<ImmutablePair<User, String>> handle(CreateOperatorCommand command) {
+        if (userRepository.existsByUsername(command.username())) {
+            throw new DuplicateUserException(DuplicateUserException.Field.USERNAME, command.username());
+        }
+        if (userRepository.existsByEmail(command.email())) {
+            throw new DuplicateUserException(DuplicateUserException.Field.EMAIL, command.email());
+        }
+
+        var role = roleRepository.findByName(Roles.ROLE_OPERATOR)
+                .orElseThrow(() -> new UserNotFoundException("operator role not seeded"));
+
+        String plainPin = pinGenerator.generateUniquePin(null);
+        String hashed = hashingService.encode(plainPin);
+
+        var user = new User(command.username(), hashed, command.email(), List.of(role));
+        user.setTelefono(command.telefono());
+        userRepository.save(user);
+
+        var saved = userRepository.findByUsername(command.username())
+                .orElseThrow(() -> new IllegalStateException("Failed to create operator"));
+        return Optional.of(ImmutablePair.of(saved, plainPin));
     }
 
     /**

@@ -1,14 +1,13 @@
 package com.example.cryoguard.iam.application.internal.commandservices;
 
 import com.example.cryoguard.iam.application.internal.outboundservices.hashing.HashingService;
+import com.example.cryoguard.iam.application.internal.services.PinGenerator;
 import com.example.cryoguard.iam.domain.model.aggregates.User;
 import com.example.cryoguard.iam.domain.model.commands.ResetUserPinCommand;
 import com.example.cryoguard.iam.domain.services.ResetUserPinCommandService;
 import com.example.cryoguard.iam.infrastructure.persistence.jpa.repositories.UserRepository;
 import com.example.cryoguard.shared.domain.exceptions.UserNotFoundException;
 import org.springframework.stereotype.Service;
-
-import java.util.Random;
 
 /**
  * Implementation of ResetUserPinCommandService.
@@ -18,11 +17,12 @@ import java.util.Random;
 public class ResetUserPinCommandServiceImpl implements ResetUserPinCommandService {
 
     private final UserRepository userRepository;
+    private final PinGenerator pinGenerator;
     private final HashingService hashingService;
-    private final Random random = new Random();
 
-    public ResetUserPinCommandServiceImpl(UserRepository userRepository, HashingService hashingService) {
+    public ResetUserPinCommandServiceImpl(UserRepository userRepository, PinGenerator pinGenerator, HashingService hashingService) {
         this.userRepository = userRepository;
+        this.pinGenerator = pinGenerator;
         this.hashingService = hashingService;
     }
 
@@ -33,11 +33,7 @@ public class ResetUserPinCommandServiceImpl implements ResetUserPinCommandServic
             throw new UserNotFoundException(command.userId());
         }
 
-        // Generate random 4-digit PIN
-        int pin = 1000 + random.nextInt(9000);
-        String plainPin = String.valueOf(pin);
-
-        // Hash and store as password
+        String plainPin = pinGenerator.generateUniquePin(command.userId());
         User user = userOpt.get();
         user.setPassword(hashingService.encode(plainPin));
         userRepository.save(user);
